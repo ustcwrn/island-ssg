@@ -3,11 +3,14 @@ import * as path from 'path'
 import { build as viteBuild, InlineConfig, Rollup } from "vite"
 import { CLIENT_ENTRY_PATH, SERVER_ENTRY_PATH } from "./constants"
 import type { RollupOutput } from 'rollup'
-import * as fs from 'fs-extra';
+import fs from 'fs-extra';
+import ora from "ora";
+import { pathToFileURL } from 'url';  //兼容 Windows 系统  
 
 // SSG 的核心逻辑
 export async function bundle(root: string) {
-    console.log('Build client + server bundles...');
+    // const spinner = ora()
+    // console.log('Build client + server bundles...');
     try {
         const resolveViteConfig = (isServer: boolean): InlineConfig => {
             return {
@@ -48,7 +51,7 @@ export async function renderPage(
     // 找到入口chunk
     const clientChunk = clientBundle.output.find(chunk => chunk.type === 'chunk' && chunk.isEntry);
 
-    console.log(`Rendering page in server side...`);
+    // console.log(`Rendering page in server side...`);
     const html = `<!DOCTYPE html>
     <html>
       <head>
@@ -77,7 +80,7 @@ export async function build(root: string) {
     // 2. 引入 server-entry 模块    引入 ssr 入口模块
     const serverEntryPath = path.join(root, '.temp', 'ssr-entry.js');
     // 3. 服务端渲染，产出HTML
-    const { render } = require(serverEntryPath);
+    const { render } = await import(pathToFileURL(serverEntryPath).toString());
     // 服务端渲染，产出完整的 HTML 内容
     await renderPage(render, root, clientBundle);
 }

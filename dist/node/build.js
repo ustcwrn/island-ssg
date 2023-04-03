@@ -5,8 +5,11 @@ const path = require("path");
 const vite_1 = require("vite");
 const constants_1 = require("./constants");
 const fs = require("fs-extra");
+const dynamicImport = new Function("m", "return import(m)");
 // SSG 的核心逻辑
 async function bundle(root) {
+    const { default: ora } = await dynamicImport("ora");
+    const spinner = ora();
     console.log('Build client + server bundles...');
     try {
         const resolveViteConfig = (isServer) => {
