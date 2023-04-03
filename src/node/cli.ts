@@ -1,6 +1,7 @@
 import { cac } from "cac";
+import { build } from "./build";
 import { createDevServer } from "./dev";
-const path = require('path');
+import * as path from 'path'
 
 const version = require("../../package.json").version;
 
@@ -23,7 +24,12 @@ cli
 cli
   .command("build [root]", "build for production")
   .action(async (root: string) => {
-    console.log("build", root);
+    try {
+      root = root ? path.resolve(root) : process.cwd();
+      await build(root);
+    } catch(e) {
+      console.log(e);
+    }
   });
 
 cli.parse();

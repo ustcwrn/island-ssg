@@ -1,8 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const cac_1 = require("cac");
+const build_1 = require("./build");
 const dev_1 = require("./dev");
-const path = require('path');
+const path = require("path");
 const version = require("../../package.json").version;
 const cli = (0, cac_1.cac)("island").version(version).help();
 cli
@@ -21,6 +22,12 @@ cli
 cli
     .command("build [root]", "build for production")
     .action(async (root) => {
-    console.log("build", root);
+    try {
+        root = root ? path.resolve(root) : process.cwd();
+        await (0, build_1.build)(root);
+    }
+    catch (e) {
+        console.log(e);
+    }
 });
 cli.parse();
