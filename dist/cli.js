@@ -1,50 +1,4 @@
-"use strict"; function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { newObj[key] = obj[key]; } } } newObj.default = obj; return newObj; } } function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; } function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; }var __getOwnPropNames = Object.getOwnPropertyNames;
-var __commonJS = (cb, mod) => function __require() {
-  return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
-};
-
-// package.json
-var require_package = __commonJS({
-  "package.json"(exports, module) {
-    module.exports = {
-      name: "island-ssg",
-      version: "1.0.0",
-      description: "",
-      main: "index.js",
-      scripts: {
-        start: "tsup --watch",
-        build: "tsup"
-      },
-      bin: {
-        island: "bin/island.js"
-      },
-      keywords: [],
-      author: "",
-      license: "ISC",
-      dependencies: {
-        "-": "^0.0.1",
-        "@types/fs-extra": "^11.0.1",
-        "@vitejs/plugin-react": "^3.1.0",
-        D: "^1.0.0",
-        cac: "^6.7.14",
-        "fs-extra": "^11.1.1",
-        ora: "^6.3.0",
-        react: "^18.2.0",
-        "react-dom": "^18.2.0",
-        vite: "^4.2.1"
-      },
-      devDependencies: {
-        "@types/node": "^18.15.11",
-        "@types/react-dom": "^18.0.11",
-        rollup: "^3.20.2",
-        tsup: "^6.7.0",
-        typescript: "^5.0.2"
-      }
-    };
-  }
-});
-
-// src/node/cli.ts
+"use strict"; function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { newObj[key] = obj[key]; } } } newObj.default = obj; return newObj; } } function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; } function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; }// src/node/cli.ts
 var _cac = require('cac');
 
 // src/node/build.ts
@@ -95,7 +49,10 @@ async function bundle(root) {
     const serverBuild = async () => {
       return _vite.build.call(void 0, resolveViteConfig(true));
     };
-    const [clientBundle, serverBundle] = await Promise.all([clientBuild(), serverBuild()]);
+    const [clientBundle, serverBundle] = await Promise.all([
+      clientBuild(),
+      serverBuild()
+    ]);
     return [clientBundle, serverBundle];
   } catch (e) {
     console.log(e);
@@ -103,7 +60,9 @@ async function bundle(root) {
 }
 async function renderPage(render, root, clientBundle) {
   const appHtml = render();
-  const clientChunk = clientBundle.output.find((chunk) => chunk.type === "chunk" && chunk.isEntry);
+  const clientChunk = clientBundle.output.find(
+    (chunk) => chunk.type === "chunk" && chunk.isEntry
+  );
   const html = `<!DOCTYPE html>
     <html>
       <head>
@@ -122,7 +81,6 @@ async function renderPage(render, root, clientBundle) {
 }
 async function build(root) {
   const [clientBundle] = await bundle(root);
-  debugger;
   const serverEntryPath = path2.join(root, ".temp", "ssr-entry.js");
   const { render } = await Promise.resolve().then(() => _interopRequireWildcard(require(_url.pathToFileURL.call(void 0, serverEntryPath).toString())));
   await renderPage(render, root, clientBundle);
@@ -182,14 +140,18 @@ var _pluginreact = require('@vitejs/plugin-react'); var _pluginreact2 = _interop
 async function createDevServer(root = process.cwd()) {
   return _vite.createServer.call(void 0, {
     root,
-    plugins: [pluginIndexHtml(), _pluginreact2.default.call(void 0, )]
+    plugins: [pluginIndexHtml(), _pluginreact2.default.call(void 0, )],
+    server: {
+      fs: {
+        allow: [PACKAGE_ROOT]
+      }
+    }
   });
 }
 
 // src/node/cli.ts
 
-var version = require_package().version;
-var cli = _cac.cac.call(void 0, "island").version(version).help();
+var cli = _cac.cac.call(void 0, "island").version("1.0.0").help();
 cli.command("[root]", "start dev server").alias("dev").action(async (root) => {
   root = root ? path3.resolve(root) : process.cwd();
   console.log(root);

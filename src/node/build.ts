@@ -1,10 +1,8 @@
-import { format } from 'path';
 import * as path from 'path';
-import { build as viteBuild, InlineConfig, Rollup } from 'vite';
+import { build as viteBuild, InlineConfig } from 'vite';
 import { CLIENT_ENTRY_PATH, SERVER_ENTRY_PATH } from './constants';
 import type { RollupOutput } from 'rollup';
 import fs from 'fs-extra';
-import ora from 'ora';
 import { pathToFileURL } from 'url'; //兼容 Windows 系统
 
 // SSG 的核心逻辑

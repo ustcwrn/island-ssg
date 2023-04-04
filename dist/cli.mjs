@@ -1,49 +1,3 @@
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __commonJS = (cb, mod) => function __require() {
-  return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
-};
-
-// package.json
-var require_package = __commonJS({
-  "package.json"(exports, module) {
-    module.exports = {
-      name: "island-ssg",
-      version: "1.0.0",
-      description: "",
-      main: "index.js",
-      scripts: {
-        start: "tsup --watch",
-        build: "tsup"
-      },
-      bin: {
-        island: "bin/island.js"
-      },
-      keywords: [],
-      author: "",
-      license: "ISC",
-      dependencies: {
-        "-": "^0.0.1",
-        "@types/fs-extra": "^11.0.1",
-        "@vitejs/plugin-react": "^3.1.0",
-        D: "^1.0.0",
-        cac: "^6.7.14",
-        "fs-extra": "^11.1.1",
-        ora: "^6.3.0",
-        react: "^18.2.0",
-        "react-dom": "^18.2.0",
-        vite: "^4.2.1"
-      },
-      devDependencies: {
-        "@types/node": "^18.15.11",
-        "@types/react-dom": "^18.0.11",
-        rollup: "^3.20.2",
-        tsup: "^6.7.0",
-        typescript: "^5.0.2"
-      }
-    };
-  }
-});
-
 // node_modules/.pnpm/tsup@6.7.0_typescript@5.0.2/node_modules/tsup/assets/esm_shims.js
 import { fileURLToPath } from "url";
 import path from "path";
@@ -102,7 +56,10 @@ async function bundle(root) {
     const serverBuild = async () => {
       return viteBuild(resolveViteConfig(true));
     };
-    const [clientBundle, serverBundle] = await Promise.all([clientBuild(), serverBuild()]);
+    const [clientBundle, serverBundle] = await Promise.all([
+      clientBuild(),
+      serverBuild()
+    ]);
     return [clientBundle, serverBundle];
   } catch (e) {
     console.log(e);
@@ -110,7 +67,9 @@ async function bundle(root) {
 }
 async function renderPage(render, root, clientBundle) {
   const appHtml = render();
-  const clientChunk = clientBundle.output.find((chunk) => chunk.type === "chunk" && chunk.isEntry);
+  const clientChunk = clientBundle.output.find(
+    (chunk) => chunk.type === "chunk" && chunk.isEntry
+  );
   const html = `<!DOCTYPE html>
     <html>
       <head>
@@ -129,7 +88,6 @@ async function renderPage(render, root, clientBundle) {
 }
 async function build(root) {
   const [clientBundle] = await bundle(root);
-  debugger;
   const serverEntryPath = path3.join(root, ".temp", "ssr-entry.js");
   const { render } = await import(pathToFileURL(serverEntryPath).toString());
   await renderPage(render, root, clientBundle);
@@ -189,14 +147,18 @@ import pluginReact from "@vitejs/plugin-react";
 async function createDevServer(root = process.cwd()) {
   return creatViteDevServer({
     root,
-    plugins: [pluginIndexHtml(), pluginReact()]
+    plugins: [pluginIndexHtml(), pluginReact()],
+    server: {
+      fs: {
+        allow: [PACKAGE_ROOT]
+      }
+    }
   });
 }
 
 // src/node/cli.ts
 import * as path4 from "path";
-var version = require_package().version;
-var cli = cac("island").version(version).help();
+var cli = cac("island").version("1.0.0").help();
 cli.command("[root]", "start dev server").alias("dev").action(async (root) => {
   root = root ? path4.resolve(root) : process.cwd();
   console.log(root);
