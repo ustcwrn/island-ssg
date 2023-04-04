@@ -1,7 +1,7 @@
 import fs from 'fs-extra';
 import { resolve } from 'path';
 import { loadConfigFromFile } from 'vite'; //读取配置文件的内容
-import { UserConfig } from '../shared/types';
+import { UserConfig, SiteConfig } from '../shared/types';
 
 type RawConfig =
   | UserConfig
@@ -21,10 +21,10 @@ function getUserConfigPath(root: string) {
   }
 }
 
-export async function resolveConfig(
+export async function resolveUserConfig(
   root: string,
   command: 'serve' | 'build',
-  mode: 'production' | 'development'
+  mode: 'development' | 'production'
 ) {
   // 1. 获取配置文件路径，支持js、ts格式
   const configPath = getUserConfigPath(root);
@@ -50,4 +50,30 @@ export async function resolveConfig(
   } else {
     return [configPath, {} as UserConfig] as const;
   }
+}
+function resolveSiteData(userConfig: UserConfig): UserConfig {
+  return {
+    title: userConfig.title || 'Island.js',
+    description: userConfig.description || 'SSG Framework',
+    themeConfig: userConfig.themeConfig || {},
+    vite: userConfig.vite || {}
+  };
+}
+
+export async function resolveConfig(
+  root: string,
+  command: 'serve' | 'build',
+  mode: 'development' | 'production'
+) {
+  const [configPath, userConfig] = await resolveUserConfig(root, command, mode);
+  const siteConfig: SiteConfig = {
+    root,
+    configPath,
+    siteData: resolveSiteData(userConfig as UserConfig)
+  };
+  return siteConfig;
+}
+// 解决配置文件类型提示的问题
+export function defineConfig(config: UserConfig): UserConfig {
+  return config;
 }

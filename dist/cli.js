@@ -1,28 +1,15 @@
-"use strict"; function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { newObj[key] = obj[key]; } } } newObj.default = obj; return newObj; } } function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; } function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; }// src/node/cli.ts
-var _cac = require('cac');
+"use strict"; function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { newObj[key] = obj[key]; } } } newObj.default = obj; return newObj; } } function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; } function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; }
+
+
+var _chunk3Y52UHGCjs = require('./chunk-3Y52UHGC.js');
+
+// src/node/cli.ts
+var _cac = require('cac'); var _cac2 = _interopRequireDefault(_cac);
+var _path = require('path'); var path = _interopRequireWildcard(_path);
 
 // src/node/build.ts
-var _path = require('path'); var path2 = _interopRequireWildcard(_path); var path = _interopRequireWildcard(_path); var path3 = _interopRequireWildcard(_path);
+
 var _vite = require('vite');
-
-// src/node/constants/index.ts
-
-var PACKAGE_ROOT = path.join(__dirname, "..");
-var DEFAULT_HTML_PATH = path.join(PACKAGE_ROOT, "template.html");
-var CLIENT_ENTRY_PATH = path.join(
-  PACKAGE_ROOT,
-  "src",
-  "runtime",
-  "client-entry.tsx"
-);
-var SERVER_ENTRY_PATH = path.join(
-  PACKAGE_ROOT,
-  "src",
-  "runtime",
-  "ssr-entry.tsx"
-);
-
-// src/node/build.ts
 var _fsextra = require('fs-extra'); var _fsextra2 = _interopRequireDefault(_fsextra);
 var _url = require('url');
 async function bundle(root) {
@@ -35,7 +22,7 @@ async function bundle(root) {
           ssr: isServer,
           outDir: isServer ? ".temp" : "build",
           rollupOptions: {
-            input: isServer ? SERVER_ENTRY_PATH : CLIENT_ENTRY_PATH,
+            input: isServer ? _chunk3Y52UHGCjs.SERVER_ENTRY_PATH : _chunk3Y52UHGCjs.CLIENT_ENTRY_PATH,
             output: {
               format: isServer ? "cjs" : "esm"
             }
@@ -76,129 +63,33 @@ async function renderPage(render, root, clientBundle) {
         <script type="module" src="/${_optionalChain([clientChunk, 'optionalAccess', _ => _.fileName])}"></script>
       </body>
     </html>`.trim();
-  await _fsextra2.default.writeFile(path2.join(root, "build/index.html"), html);
-  await _fsextra2.default.remove(path2.join(root, ".temp"));
+  await _fsextra2.default.writeFile(path.join(root, "build/index.html"), html);
+  await _fsextra2.default.remove(path.join(root, ".temp"));
 }
 async function build(root) {
   const [clientBundle] = await bundle(root);
-  const serverEntryPath = path2.join(root, ".temp", "ssr-entry.js");
+  const serverEntryPath = path.join(root, ".temp", "ssr-entry.js");
   const { render } = await Promise.resolve().then(() => _interopRequireWildcard(require(_url.pathToFileURL.call(void 0, serverEntryPath).toString())));
   await renderPage(render, root, clientBundle);
 }
 
-// src/node/dev.ts
-
-
-// src/node/plugin-island/indexHtml.ts
-var _promises = require('fs/promises');
-function pluginIndexHtml() {
-  return {
-    // 插件名
-    name: "island: index-html",
-    apply: "serve",
-    // 插入入口script标签
-    transformIndexHtml(html) {
-      return {
-        html,
-        tags: [
-          {
-            tag: "script",
-            attrs: {
-              type: "module",
-              src: `/@fs/${CLIENT_ENTRY_PATH}`
-            },
-            injectTo: "body"
-          }
-        ]
-      };
-    },
-    // 配置devServer
-    configureServer(server) {
-      return () => {
-        server.middlewares.use(async (req, res, next) => {
-          let html = await _promises.readFile.call(void 0, DEFAULT_HTML_PATH, "utf-8");
-          try {
-            html = await server.transformIndexHtml(
-              req.url,
-              html,
-              req.originalUrl
-            );
-            res.statusCode = 200;
-            res.setHeader("Content-Type", "text/html");
-            res.end(html);
-          } catch (e) {
-            return next(e);
-          }
-        });
-      };
-    }
-  };
-}
-
-// src/node/dev.ts
-var _pluginreact = require('@vitejs/plugin-react'); var _pluginreact2 = _interopRequireDefault(_pluginreact);
-
-// src/node/config.ts
-
-
-
-function getUserConfigPath(root) {
-  try {
-    const supportConfigFiles = ["config.ts", "config.js"];
-    const configPath = supportConfigFiles.map((file) => _path.resolve.call(void 0, root, file)).find(_fsextra2.default.pathExistsSync);
-    return configPath;
-  } catch (e) {
-    console.log("Failed to load user config");
-    throw e;
-  }
-}
-async function resolveConfig(root, command, mode) {
-  const configPath = getUserConfigPath(root);
-  const result = await _vite.loadConfigFromFile.call(void 0, 
-    {
-      command,
-      mode
-    },
-    configPath,
-    root
-  );
-  if (result) {
-    const { config: rawConfig = {} } = result;
-    const userConfig = await (typeof rawConfig === "function" ? rawConfig() : rawConfig);
-    return [configPath, userConfig];
-  } else {
-    return [configPath, {}];
-  }
-}
-
-// src/node/dev.ts
-async function createDevServer(root = process.cwd()) {
-  const config = await resolveConfig(root, "serve", "development");
-  console.log(config);
-  return _vite.createServer.call(void 0, {
-    root,
-    plugins: [pluginIndexHtml(), _pluginreact2.default.call(void 0, )],
-    server: {
-      fs: {
-        allow: [PACKAGE_ROOT]
-      }
-    }
-  });
-}
-
 // src/node/cli.ts
-
-var cli = _cac.cac.call(void 0, "island").version("1.0.0").help();
-cli.command("[root]", "start dev server").alias("dev").action(async (root) => {
-  root = root ? path3.resolve(root) : process.cwd();
-  console.log(root);
-  const server = await createDevServer(root);
-  await server.listen();
-  server.printUrls();
+var cli = _cac2.default.call(void 0, "island").version("0.0.1").help();
+cli.command("dev [root]", "start dev server").action(async (root) => {
+  const createServer = async () => {
+    const { createDevServer } = await Promise.resolve().then(() => _interopRequireWildcard(require("./dev.js")));
+    const server = await createDevServer(root, async () => {
+      await server.close();
+      await createServer();
+    });
+    await server.listen();
+    server.printUrls();
+  };
+  await createServer();
 });
-cli.command("build [root]", "build for production").action(async (root) => {
+cli.command("build [root]", "build in production").action(async (root) => {
   try {
-    root = root ? path3.resolve(root) : process.cwd();
+    root = _path.resolve.call(void 0, root);
     await build(root);
   } catch (e) {
     console.log(e);

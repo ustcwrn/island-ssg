@@ -1,35 +1,16 @@
-// node_modules/.pnpm/tsup@6.7.0_typescript@5.0.2/node_modules/tsup/assets/esm_shims.js
-import { fileURLToPath } from "url";
-import path from "path";
-var getFilename = () => fileURLToPath(import.meta.url);
-var getDirname = () => path.dirname(getFilename());
-var __dirname = /* @__PURE__ */ getDirname();
+import {
+  CLIENT_ENTRY_PATH,
+  SERVER_ENTRY_PATH
+} from "./chunk-GHXKCXON.mjs";
+import "./chunk-ZGVSYNV5.mjs";
 
 // src/node/cli.ts
-import { cac } from "cac";
+import cac from "cac";
+import { resolve } from "path";
 
 // src/node/build.ts
-import * as path3 from "path";
+import * as path from "path";
 import { build as viteBuild } from "vite";
-
-// src/node/constants/index.ts
-import * as path2 from "path";
-var PACKAGE_ROOT = path2.join(__dirname, "..");
-var DEFAULT_HTML_PATH = path2.join(PACKAGE_ROOT, "template.html");
-var CLIENT_ENTRY_PATH = path2.join(
-  PACKAGE_ROOT,
-  "src",
-  "runtime",
-  "client-entry.tsx"
-);
-var SERVER_ENTRY_PATH = path2.join(
-  PACKAGE_ROOT,
-  "src",
-  "runtime",
-  "ssr-entry.tsx"
-);
-
-// src/node/build.ts
 import fs from "fs-extra";
 import { pathToFileURL } from "url";
 async function bundle(root) {
@@ -83,129 +64,33 @@ async function renderPage(render, root, clientBundle) {
         <script type="module" src="/${clientChunk?.fileName}"></script>
       </body>
     </html>`.trim();
-  await fs.writeFile(path3.join(root, "build/index.html"), html);
-  await fs.remove(path3.join(root, ".temp"));
+  await fs.writeFile(path.join(root, "build/index.html"), html);
+  await fs.remove(path.join(root, ".temp"));
 }
 async function build(root) {
   const [clientBundle] = await bundle(root);
-  const serverEntryPath = path3.join(root, ".temp", "ssr-entry.js");
+  const serverEntryPath = path.join(root, ".temp", "ssr-entry.js");
   const { render } = await import(pathToFileURL(serverEntryPath).toString());
   await renderPage(render, root, clientBundle);
 }
 
-// src/node/dev.ts
-import { createServer as creatViteDevServer } from "vite";
-
-// src/node/plugin-island/indexHtml.ts
-import { readFile } from "fs/promises";
-function pluginIndexHtml() {
-  return {
-    // 插件名
-    name: "island: index-html",
-    apply: "serve",
-    // 插入入口script标签
-    transformIndexHtml(html) {
-      return {
-        html,
-        tags: [
-          {
-            tag: "script",
-            attrs: {
-              type: "module",
-              src: `/@fs/${CLIENT_ENTRY_PATH}`
-            },
-            injectTo: "body"
-          }
-        ]
-      };
-    },
-    // 配置devServer
-    configureServer(server) {
-      return () => {
-        server.middlewares.use(async (req, res, next) => {
-          let html = await readFile(DEFAULT_HTML_PATH, "utf-8");
-          try {
-            html = await server.transformIndexHtml(
-              req.url,
-              html,
-              req.originalUrl
-            );
-            res.statusCode = 200;
-            res.setHeader("Content-Type", "text/html");
-            res.end(html);
-          } catch (e) {
-            return next(e);
-          }
-        });
-      };
-    }
-  };
-}
-
-// src/node/dev.ts
-import pluginReact from "@vitejs/plugin-react";
-
-// src/node/config.ts
-import fs2 from "fs-extra";
-import { resolve } from "path";
-import { loadConfigFromFile } from "vite";
-function getUserConfigPath(root) {
-  try {
-    const supportConfigFiles = ["config.ts", "config.js"];
-    const configPath = supportConfigFiles.map((file) => resolve(root, file)).find(fs2.pathExistsSync);
-    return configPath;
-  } catch (e) {
-    console.log("Failed to load user config");
-    throw e;
-  }
-}
-async function resolveConfig(root, command, mode) {
-  const configPath = getUserConfigPath(root);
-  const result = await loadConfigFromFile(
-    {
-      command,
-      mode
-    },
-    configPath,
-    root
-  );
-  if (result) {
-    const { config: rawConfig = {} } = result;
-    const userConfig = await (typeof rawConfig === "function" ? rawConfig() : rawConfig);
-    return [configPath, userConfig];
-  } else {
-    return [configPath, {}];
-  }
-}
-
-// src/node/dev.ts
-async function createDevServer(root = process.cwd()) {
-  const config = await resolveConfig(root, "serve", "development");
-  console.log(config);
-  return creatViteDevServer({
-    root,
-    plugins: [pluginIndexHtml(), pluginReact()],
-    server: {
-      fs: {
-        allow: [PACKAGE_ROOT]
-      }
-    }
-  });
-}
-
 // src/node/cli.ts
-import * as path4 from "path";
-var cli = cac("island").version("1.0.0").help();
-cli.command("[root]", "start dev server").alias("dev").action(async (root) => {
-  root = root ? path4.resolve(root) : process.cwd();
-  console.log(root);
-  const server = await createDevServer(root);
-  await server.listen();
-  server.printUrls();
+var cli = cac("island").version("0.0.1").help();
+cli.command("dev [root]", "start dev server").action(async (root) => {
+  const createServer = async () => {
+    const { createDevServer } = await import("./dev.mjs");
+    const server = await createDevServer(root, async () => {
+      await server.close();
+      await createServer();
+    });
+    await server.listen();
+    server.printUrls();
+  };
+  await createServer();
 });
-cli.command("build [root]", "build for production").action(async (root) => {
+cli.command("build [root]", "build in production").action(async (root) => {
   try {
-    root = root ? path4.resolve(root) : process.cwd();
+    root = resolve(root);
     await build(root);
   } catch (e) {
     console.log(e);

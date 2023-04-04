@@ -36,8 +36,14 @@ export interface Themeconfig {
 
 // 用户配置
 export interface UserConfig {
-  title: string;
-  description: string;
-  themeConfig: Themeconfig;
-  vite: viteConfiguration;
+  title?: string;
+  description?: string;
+  themeConfig?: Themeconfig;
+  vite?: viteConfiguration;
+}
+
+export interface SiteConfig {
+  root: string;
+  configPath: string;
+  siteData: UserConfig;
 }
