@@ -44,7 +44,7 @@ export const rehypePluginPreWrapper: Plugin<[], Root> = () => {
             children: [
               {
                 type: 'text',
-                value: 'lang'
+                value: lang
               }
             ]
           },

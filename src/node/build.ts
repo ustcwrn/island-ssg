@@ -12,11 +12,13 @@ export async function bundle(root: string, config: SiteConfig) {
   // const spinner = ora()
   // console.log('Build client + server bundles...');
   try {
-    const resolveViteConfig = (isServer: boolean): InlineConfig => {
+    const resolveViteConfig = async (
+      isServer: boolean
+    ): Promise<InlineConfig> => {
       return {
         mode: 'production',
         root,
-        plugins: createVitePlugins(config),
+        plugins: await createVitePlugins(config),
         ssr: {
           // 注意加上这个配置，防止 cjs 产物中 require ESM 的产物，因为 react-router-dom 的产物为 ESM 格式
           noExternal: ['react-router-dom']
@@ -35,11 +37,11 @@ export async function bundle(root: string, config: SiteConfig) {
     };
     // client build
     const clientBuild = async () => {
-      return viteBuild(resolveViteConfig(false));
+      return viteBuild(await resolveViteConfig(false));
     };
     // server build
     const serverBuild = async () => {
-      return viteBuild(resolveViteConfig(true));
+      return viteBuild(await resolveViteConfig(true));
     };
 
     const [clientBundle, serverBundle] = await Promise.all([

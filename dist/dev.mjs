@@ -1,7 +1,7 @@
 import {
   PACKAGE_ROOT,
   createVitePlugins
-} from "./chunk-STULV5AF.mjs";
+} from "./chunk-FMPKJBTK.mjs";
 import {
   resolveConfig
 } from "./chunk-I7RX6JT6.mjs";
@@ -12,7 +12,7 @@ async function createDevServer(root, restartServer) {
   const config = await resolveConfig(root, "serve", "development");
   return creatViteDevServer({
     root,
-    plugins: createVitePlugins(config, restartServer),
+    plugins: await createVitePlugins(config, restartServer),
     server: {
       fs: {
         allow: [PACKAGE_ROOT]

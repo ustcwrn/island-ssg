@@ -2,7 +2,7 @@
 
 
 
-var _chunk5WTNQFDHjs = require('./chunk-5WTNQFDH.js');
+var _chunkCK4VTM3Ijs = require('./chunk-CK4VTM3I.js');
 
 
 var _chunk3W46IG2Ajs = require('./chunk-3W46IG2A.js');
@@ -18,11 +18,11 @@ var _fsextra = require('fs-extra'); var _fsextra2 = _interopRequireDefault(_fsex
 var _url = require('url');
 async function bundle(root, config) {
   try {
-    const resolveViteConfig = (isServer) => {
+    const resolveViteConfig = async (isServer) => {
       return {
         mode: "production",
         root,
-        plugins: _chunk5WTNQFDHjs.createVitePlugins.call(void 0, config),
+        plugins: await _chunkCK4VTM3Ijs.createVitePlugins.call(void 0, config),
         ssr: {
           // 注意加上这个配置，防止 cjs 产物中 require ESM 的产物，因为 react-router-dom 的产物为 ESM 格式
           noExternal: ["react-router-dom"]
@@ -31,7 +31,7 @@ async function bundle(root, config) {
           ssr: isServer,
           outDir: isServer ? ".temp" : "build",
           rollupOptions: {
-            input: isServer ? _chunk5WTNQFDHjs.SERVER_ENTRY_PATH : _chunk5WTNQFDHjs.CLIENT_ENTRY_PATH,
+            input: isServer ? _chunkCK4VTM3Ijs.SERVER_ENTRY_PATH : _chunkCK4VTM3Ijs.CLIENT_ENTRY_PATH,
             output: {
               format: isServer ? "cjs" : "esm"
             }
@@ -40,10 +40,10 @@ async function bundle(root, config) {
       };
     };
     const clientBuild = async () => {
-      return _vite.build.call(void 0, resolveViteConfig(false));
+      return _vite.build.call(void 0, await resolveViteConfig(false));
     };
     const serverBuild = async () => {
-      return _vite.build.call(void 0, resolveViteConfig(true));
+      return _vite.build.call(void 0, await resolveViteConfig(true));
     };
     const [clientBundle, serverBundle] = await Promise.all([
       clientBuild(),
