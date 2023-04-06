@@ -7,22 +7,6 @@ export function pluginIndexHtml(): Plugin {
     // 插件名
     name: 'island: index-html',
     apply: 'serve',
-    // 插入入口script标签
-    transformIndexHtml(html) {
-      return {
-        html,
-        tags: [
-          {
-            tag: 'script',
-            attrs: {
-              type: 'module',
-              src: `/@fs/${CLIENT_ENTRY_PATH}`
-            },
-            injectTo: 'body'
-          }
-        ]
-      };
-    },
     // 配置devServer
     configureServer(server) {
       // configureServer 钩子将在内部中间件被安装前调用
@@ -50,6 +34,22 @@ export function pluginIndexHtml(): Plugin {
             return next(e);
           }
         });
+      };
+    },
+    // 插入入口script标签
+    transformIndexHtml(html) {
+      return {
+        html,
+        tags: [
+          {
+            tag: 'script',
+            attrs: {
+              type: 'module',
+              src: `/@fs/${CLIENT_ENTRY_PATH}`
+            },
+            injectTo: 'body'
+          }
+        ]
       };
     }
   };

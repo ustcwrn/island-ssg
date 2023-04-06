@@ -1,8 +1,11 @@
 import {
   CLIENT_ENTRY_PATH,
-  SERVER_ENTRY_PATH
-} from "./chunk-GHXKCXON.mjs";
-import "./chunk-ZGVSYNV5.mjs";
+  SERVER_ENTRY_PATH,
+  pluginConfig
+} from "./chunk-5FDACDA4.mjs";
+import {
+  resolveConfig
+} from "./chunk-I7RX6JT6.mjs";
 
 // src/node/cli.ts
 import cac from "cac";
@@ -13,12 +16,18 @@ import * as path from "path";
 import { build as viteBuild } from "vite";
 import fs from "fs-extra";
 import { pathToFileURL } from "url";
-async function bundle(root) {
+import pluginReact from "@vitejs/plugin-react";
+async function bundle(root, config) {
   try {
     const resolveViteConfig = (isServer) => {
       return {
         mode: "production",
         root,
+        plugins: [pluginReact(), pluginConfig(config)],
+        ssr: {
+          // 注意加上这个配置，防止 cjs 产物中 require ESM 的产物，因为 react-router-dom 的产物为 ESM 格式
+          noExternal: ["react-router-dom"]
+        },
         build: {
           ssr: isServer,
           outDir: isServer ? ".temp" : "build",
@@ -67,8 +76,8 @@ async function renderPage(render, root, clientBundle) {
   await fs.writeFile(path.join(root, "build/index.html"), html);
   await fs.remove(path.join(root, ".temp"));
 }
-async function build(root) {
-  const [clientBundle] = await bundle(root);
+async function build(root = process.cwd(), config) {
+  const [clientBundle] = await bundle(root, config);
   const serverEntryPath = path.join(root, ".temp", "ssr-entry.js");
   const { render } = await import(pathToFileURL(serverEntryPath).toString());
   await renderPage(render, root, clientBundle);
@@ -91,7 +100,8 @@ cli.command("dev [root]", "start dev server").action(async (root) => {
 cli.command("build [root]", "build in production").action(async (root) => {
   try {
     root = resolve(root);
-    await build(root);
+    const config = await resolveConfig(root, "build", "production");
+    await build(process.cwd(), config);
   } catch (e) {
     console.log(e);
   }

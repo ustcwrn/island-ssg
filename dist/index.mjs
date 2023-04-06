@@ -1,7 +1,6 @@
 import {
   defineConfig
-} from "./chunk-VNT276CA.mjs";
-import "./chunk-ZGVSYNV5.mjs";
+} from "./chunk-I7RX6JT6.mjs";
 export {
   defineConfig
 };

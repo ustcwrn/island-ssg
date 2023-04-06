@@ -4,9 +4,12 @@ import { CLIENT_ENTRY_PATH, SERVER_ENTRY_PATH } from './constants';
 import type { RollupOutput } from 'rollup';
 import fs from 'fs-extra';
 import { pathToFileURL } from 'url'; //兼容 Windows 系统
+import { SiteConfig } from 'shared/types';
+import pluginReact from '@vitejs/plugin-react';
+import { pluginConfig } from './plugin-island/config';
 
 // SSG 的核心逻辑
-export async function bundle(root: string) {
+export async function bundle(root: string, config: SiteConfig) {
   // const spinner = ora()
   // console.log('Build client + server bundles...');
   try {
@@ -14,6 +17,11 @@ export async function bundle(root: string) {
       return {
         mode: 'production',
         root,
+        plugins: [pluginReact(), pluginConfig(config)],
+        ssr: {
+          // 注意加上这个配置，防止 cjs 产物中 require ESM 的产物，因为 react-router-dom 的产物为 ESM 格式
+          noExternal: ['react-router-dom']
+        },
         build: {
           ssr: isServer,
           outDir: isServer ? '.temp' : 'build',
@@ -75,9 +83,9 @@ export async function renderPage(
   await fs.remove(path.join(root, '.temp'));
 }
 
-export async function build(root: string) {
+export async function build(root: string = process.cwd(), config: SiteConfig) {
   // 1. 打包代码，包括 client 端 + server 端
-  const [clientBundle] = await bundle(root);
+  const [clientBundle] = await bundle(root, config);
   // 2. 引入 server-entry 模块    引入 ssr 入口模块
   const serverEntryPath = path.join(root, '.temp', 'ssr-entry.js');
   // 3. 服务端渲染，产出HTML

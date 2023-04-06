@@ -1,7 +1,11 @@
 "use strict"; function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { newObj[key] = obj[key]; } } } newObj.default = obj; return newObj; } } function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; } function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; }
 
 
-var _chunk3Y52UHGCjs = require('./chunk-3Y52UHGC.js');
+
+var _chunkDJG3EMELjs = require('./chunk-DJG3EMEL.js');
+
+
+var _chunk3W46IG2Ajs = require('./chunk-3W46IG2A.js');
 
 // src/node/cli.ts
 var _cac = require('cac'); var _cac2 = _interopRequireDefault(_cac);
@@ -12,17 +16,23 @@ var _path = require('path'); var path = _interopRequireWildcard(_path);
 var _vite = require('vite');
 var _fsextra = require('fs-extra'); var _fsextra2 = _interopRequireDefault(_fsextra);
 var _url = require('url');
-async function bundle(root) {
+var _pluginreact = require('@vitejs/plugin-react'); var _pluginreact2 = _interopRequireDefault(_pluginreact);
+async function bundle(root, config) {
   try {
     const resolveViteConfig = (isServer) => {
       return {
         mode: "production",
         root,
+        plugins: [_pluginreact2.default.call(void 0, ), _chunkDJG3EMELjs.pluginConfig.call(void 0, config)],
+        ssr: {
+          // 注意加上这个配置，防止 cjs 产物中 require ESM 的产物，因为 react-router-dom 的产物为 ESM 格式
+          noExternal: ["react-router-dom"]
+        },
         build: {
           ssr: isServer,
           outDir: isServer ? ".temp" : "build",
           rollupOptions: {
-            input: isServer ? _chunk3Y52UHGCjs.SERVER_ENTRY_PATH : _chunk3Y52UHGCjs.CLIENT_ENTRY_PATH,
+            input: isServer ? _chunkDJG3EMELjs.SERVER_ENTRY_PATH : _chunkDJG3EMELjs.CLIENT_ENTRY_PATH,
             output: {
               format: isServer ? "cjs" : "esm"
             }
@@ -66,8 +76,8 @@ async function renderPage(render, root, clientBundle) {
   await _fsextra2.default.writeFile(path.join(root, "build/index.html"), html);
   await _fsextra2.default.remove(path.join(root, ".temp"));
 }
-async function build(root) {
-  const [clientBundle] = await bundle(root);
+async function build(root = process.cwd(), config) {
+  const [clientBundle] = await bundle(root, config);
   const serverEntryPath = path.join(root, ".temp", "ssr-entry.js");
   const { render } = await Promise.resolve().then(() => _interopRequireWildcard(require(_url.pathToFileURL.call(void 0, serverEntryPath).toString())));
   await renderPage(render, root, clientBundle);
@@ -90,7 +100,8 @@ cli.command("dev [root]", "start dev server").action(async (root) => {
 cli.command("build [root]", "build in production").action(async (root) => {
   try {
     root = _path.resolve.call(void 0, root);
-    await build(root);
+    const config = await _chunk3W46IG2Ajs.resolveConfig.call(void 0, root, "build", "production");
+    await build(process.cwd(), config);
   } catch (e) {
     console.log(e);
   }
