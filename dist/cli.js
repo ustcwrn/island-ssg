@@ -2,7 +2,7 @@
 
 
 
-var _chunkDJG3EMELjs = require('./chunk-DJG3EMEL.js');
+var _chunkSKPUPJ5Fjs = require('./chunk-SKPUPJ5F.js');
 
 
 var _chunk3W46IG2Ajs = require('./chunk-3W46IG2A.js');
@@ -16,14 +16,13 @@ var _path = require('path'); var path = _interopRequireWildcard(_path);
 var _vite = require('vite');
 var _fsextra = require('fs-extra'); var _fsextra2 = _interopRequireDefault(_fsextra);
 var _url = require('url');
-var _pluginreact = require('@vitejs/plugin-react'); var _pluginreact2 = _interopRequireDefault(_pluginreact);
 async function bundle(root, config) {
   try {
     const resolveViteConfig = (isServer) => {
       return {
         mode: "production",
         root,
-        plugins: [_pluginreact2.default.call(void 0, ), _chunkDJG3EMELjs.pluginConfig.call(void 0, config)],
+        plugins: _chunkSKPUPJ5Fjs.createVitePlugins.call(void 0, config),
         ssr: {
           // 注意加上这个配置，防止 cjs 产物中 require ESM 的产物，因为 react-router-dom 的产物为 ESM 格式
           noExternal: ["react-router-dom"]
@@ -32,7 +31,7 @@ async function bundle(root, config) {
           ssr: isServer,
           outDir: isServer ? ".temp" : "build",
           rollupOptions: {
-            input: isServer ? _chunkDJG3EMELjs.SERVER_ENTRY_PATH : _chunkDJG3EMELjs.CLIENT_ENTRY_PATH,
+            input: isServer ? _chunkSKPUPJ5Fjs.SERVER_ENTRY_PATH : _chunkSKPUPJ5Fjs.CLIENT_ENTRY_PATH,
             output: {
               format: isServer ? "cjs" : "esm"
             }

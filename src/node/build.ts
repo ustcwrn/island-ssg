@@ -5,8 +5,7 @@ import type { RollupOutput } from 'rollup';
 import fs from 'fs-extra';
 import { pathToFileURL } from 'url'; //兼容 Windows 系统
 import { SiteConfig } from 'shared/types';
-import pluginReact from '@vitejs/plugin-react';
-import { pluginConfig } from './plugin-island/config';
+import { createVitePlugins } from './vitePlugins';
 
 // SSG 的核心逻辑
 export async function bundle(root: string, config: SiteConfig) {
@@ -17,7 +16,7 @@ export async function bundle(root: string, config: SiteConfig) {
       return {
         mode: 'production',
         root,
-        plugins: [pluginReact(), pluginConfig(config)],
+        plugins: createVitePlugins(config),
         ssr: {
           // 注意加上这个配置，防止 cjs 产物中 require ESM 的产物，因为 react-router-dom 的产物为 ESM 格式
           noExternal: ['react-router-dom']
