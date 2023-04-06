@@ -1,4 +1,4 @@
-import { InlineConfig, createServer as creatViteDevServer } from 'vite';
+import { createServer as creatViteDevServer } from 'vite';
 
 import { PACKAGE_ROOT } from './constants';
 import { resolveConfig } from './config';

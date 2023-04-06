@@ -2,7 +2,7 @@ import cac from 'cac';
 import { resolve } from 'path';
 import { build } from './build';
 import { resolveConfig } from './config';
-import { PACKAGE_ROOT } from './constants';
+// import { PACKAGE_ROOT } from './constants';
 
 const cli = cac('island').version('0.0.1').help();
 

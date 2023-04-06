@@ -2,7 +2,7 @@
 
 
 
-var _chunkSKPUPJ5Fjs = require('./chunk-SKPUPJ5F.js');
+var _chunk5WTNQFDHjs = require('./chunk-5WTNQFDH.js');
 
 
 var _chunk3W46IG2Ajs = require('./chunk-3W46IG2A.js');
@@ -22,7 +22,7 @@ async function bundle(root, config) {
       return {
         mode: "production",
         root,
-        plugins: _chunkSKPUPJ5Fjs.createVitePlugins.call(void 0, config),
+        plugins: _chunk5WTNQFDHjs.createVitePlugins.call(void 0, config),
         ssr: {
           // 注意加上这个配置，防止 cjs 产物中 require ESM 的产物，因为 react-router-dom 的产物为 ESM 格式
           noExternal: ["react-router-dom"]
@@ -31,7 +31,7 @@ async function bundle(root, config) {
           ssr: isServer,
           outDir: isServer ? ".temp" : "build",
           rollupOptions: {
-            input: isServer ? _chunkSKPUPJ5Fjs.SERVER_ENTRY_PATH : _chunkSKPUPJ5Fjs.CLIENT_ENTRY_PATH,
+            input: isServer ? _chunk5WTNQFDHjs.SERVER_ENTRY_PATH : _chunk5WTNQFDHjs.CLIENT_ENTRY_PATH,
             output: {
               format: isServer ? "cjs" : "esm"
             }
