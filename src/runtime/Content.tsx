@@ -20,7 +20,7 @@ import { routes } from 'island:routes';
 //   }
 // ];
 export const Content = () => {
-  console.log(routes);
+  // console.log(routes);
   const routeElement = useRoutes(routes);
   return routeElement;
 };

@@ -2,14 +2,14 @@
 
 
 
-var _chunkQCJSDQLFjs = require('./chunk-QCJSDQLF.js');
+var _chunkWTLW4ADCjs = require('./chunk-WTLW4ADC.js');
 
 
 var _chunk3W46IG2Ajs = require('./chunk-3W46IG2A.js');
 
 // src/node/cli.ts
 var _cac = require('cac'); var _cac2 = _interopRequireDefault(_cac);
-var _path = require('path'); var path = _interopRequireWildcard(_path);
+var _path = require('path'); var _path2 = _interopRequireDefault(_path);
 
 // src/node/build.ts
 
@@ -22,16 +22,17 @@ async function bundle(root, config) {
       return {
         mode: "production",
         root,
-        plugins: await _chunkQCJSDQLFjs.createVitePlugins.call(void 0, config),
+        // 传入isServer参数
+        plugins: await _chunkWTLW4ADCjs.createVitePlugins.call(void 0, config, void 0, isServer),
         ssr: {
           // 注意加上这个配置，防止 cjs 产物中 require ESM 的产物，因为 react-router-dom 的产物为 ESM 格式
           noExternal: ["react-router-dom"]
         },
         build: {
           ssr: isServer,
-          outDir: isServer ? ".temp" : "build",
+          outDir: isServer ? _path2.default.join(root, ".temp") : _path2.default.join(root, "build"),
           rollupOptions: {
-            input: isServer ? _chunkQCJSDQLFjs.SERVER_ENTRY_PATH : _chunkQCJSDQLFjs.CLIENT_ENTRY_PATH,
+            input: isServer ? _chunkWTLW4ADCjs.SERVER_ENTRY_PATH : _chunkWTLW4ADCjs.CLIENT_ENTRY_PATH,
             output: {
               format: isServer ? "cjs" : "esm"
             }
@@ -54,12 +55,16 @@ async function bundle(root, config) {
     console.log(e);
   }
 }
-async function renderPage(render, root, clientBundle) {
-  const appHtml = render();
+async function renderPage(render, root, clientBundle, routes) {
   const clientChunk = clientBundle.output.find(
     (chunk) => chunk.type === "chunk" && chunk.isEntry
   );
-  const html = `<!DOCTYPE html>
+  console.log(routes);
+  return Promise.all(
+    routes.map(async (route) => {
+      const routePath = route.path;
+      const appHtml = render(routePath);
+      const html = `<!DOCTYPE html>
     <html>
       <head>
         <meta charset="utf-8">
@@ -72,14 +77,18 @@ async function renderPage(render, root, clientBundle) {
         <script type="module" src="/${_optionalChain([clientChunk, 'optionalAccess', _ => _.fileName])}"></script>
       </body>
     </html>`.trim();
-  await _fsextra2.default.writeFile(path.join(root, "build/index.html"), html);
-  await _fsextra2.default.remove(path.join(root, ".temp"));
+      const fileName = routePath.endsWith("/") ? `${routePath}index.html` : `${routePath}.html`;
+      await _fsextra2.default.ensureDir(_path2.default.join(root, "build", _path.dirname.call(void 0, fileName)));
+      await _fsextra2.default.writeFile(_path2.default.join(root, "build", fileName), html);
+      await _fsextra2.default.remove(_path2.default.join(root, ".temp"));
+    })
+  );
 }
 async function build(root = process.cwd(), config) {
   const [clientBundle] = await bundle(root, config);
-  const serverEntryPath = path.join(root, ".temp", "ssr-entry.js");
-  const { render } = await Promise.resolve().then(() => _interopRequireWildcard(require(_url.pathToFileURL.call(void 0, serverEntryPath).toString())));
-  await renderPage(render, root, clientBundle);
+  const serverEntryPath = _path2.default.join(root, ".temp", "ssr-entry.js");
+  const { render, routes } = await Promise.resolve().then(() => _interopRequireWildcard(require(_url.pathToFileURL.call(void 0, serverEntryPath).toString())));
+  await renderPage(render, root, clientBundle, routes);
 }
 
 // src/node/cli.ts

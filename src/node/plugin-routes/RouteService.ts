@@ -50,14 +50,25 @@ export class RouteService {
       ];
    */
 
-  generateRoutesCode() {
+  /**
+   *
+   * srr 之前我们通过 @loadable/component 进行浏览器端的按需加载
+   * 避免请求全量的组件代码，可以降低网络 IO 的开销
+   * 但在 SSR/SSG 阶段，所有的 JS 都通过本地磁盘进行读取
+   * 并没有网络 IO 开销相关的负担
+   * 因此我们可以通过静态 import 来导入组件
+   */
+  generateRoutesCode(srr = false) {
     return `
   import React from 'react';
-  import loadable from '@loadable/component';
+  ${srr ? '' : 'import loadable from "@loadable/component";'}
+
   ${this.#routeData
     .map((route, index) => {
       // 生成import信息,动态import，按需加载
-      return `const Route${index} = loadable(() => import('${route.absolutePath}'));`;
+      return srr
+        ? `import Route${index} from "${route.absolutePath}";`
+        : `const Route${index} = loadable(() => import('${route.absolutePath}'));`;
     })
     .join('\n')}
   export const routes = [

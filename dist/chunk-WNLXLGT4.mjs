@@ -152,12 +152,21 @@ var RouteService = class {
           { path: '/guide/b', element: React.createElement(Route1) }
       ];
    */
-  generateRoutesCode() {
+  /**
+   *
+   * srr 之前我们通过 @loadable/component 进行浏览器端的按需加载
+   * 避免请求全量的组件代码，可以降低网络 IO 的开销
+   * 但在 SSR/SSG 阶段，所有的 JS 都通过本地磁盘进行读取
+   * 并没有网络 IO 开销相关的负担
+   * 因此我们可以通过静态 import 来导入组件
+   */
+  generateRoutesCode(srr = false) {
     return `
   import React from 'react';
-  import loadable from '@loadable/component';
+  ${srr ? "" : 'import loadable from "@loadable/component";'}
+
   ${this.#routeData.map((route, index) => {
-      return `const Route${index} = loadable(() => import('${route.absolutePath}'));`;
+      return srr ? `import Route${index} from "${route.absolutePath}";` : `const Route${index} = loadable(() => import('${route.absolutePath}'));`;
     }).join("\n")}
   export const routes = [
   ${this.#routeData.map((route, index) => {
@@ -194,7 +203,7 @@ function pluginRoutes(options) {
     // 加载内容的的钩子
     load(id) {
       if (id === "\0" + CONVENTIONAL_ROUTE_ID) {
-        return routeService.generateRoutesCode();
+        return routeService.generateRoutesCode(options.isSSR || false);
       }
     }
   };
@@ -428,7 +437,7 @@ var rehypePluginPreWrapper = () => {
             children: [
               {
                 type: "text",
-                value: "lang"
+                value: lang
               }
             ]
           },
@@ -463,6 +472,48 @@ var rehypePluginShiki = ({ highlighter }) => {
   };
 };
 
+// src/node/plugin-mdx/remarkPlugins/toc.ts
+import Slugger from "github-slugger";
+import { parse } from "acorn";
+var slugger = new Slugger();
+var remarkPluginToc = () => {
+  return (tree) => {
+    const toc = [];
+    visit(tree, "heading", (node) => {
+      if (!node.depth || !node.children) {
+        return;
+      }
+      if (node.depth > 1 && node.depth < 5) {
+        const originText = node.children.map((child) => {
+          switch (child.type) {
+            case "link":
+              return child.children?.map((c) => c.value).join("") || "";
+            default:
+              return child.value;
+          }
+        }).join("");
+        const id = slugger.slug(originText);
+        toc.push({
+          id,
+          text: originText,
+          depth: node.depth
+        });
+      }
+    });
+    const insertCode = `export const toc = ${JSON.stringify(toc, null, 2)};`;
+    tree.children.push({
+      type: "mdxjsEsm",
+      value: insertCode,
+      data: {
+        estree: parse(insertCode, {
+          ecmaVersion: 2020,
+          sourceType: "module"
+        })
+      }
+    });
+  };
+};
+
 // src/node/plugin-mdx/pluginMdxRollup.ts
 async function pluginMdxRollup() {
   return pluginMdx({
@@ -470,7 +521,8 @@ async function pluginMdxRollup() {
       remarkPluginGFM,
       // 去解析页面的元信息
       remarkPluginFrontmatter,
-      [remarkPluginMDXFrontMatter, { name: "frontmatter" }]
+      [remarkPluginMDXFrontMatter, { name: "frontmatter" }],
+      remarkPluginToc
     ],
     rehypePlugins: [
       rehypePluginSlug,
@@ -489,25 +541,57 @@ async function pluginMdxRollup() {
       rehypePluginPreWrapper,
       [
         rehypePluginShiki,
-        { highlighter: await shiki.getHighlighter({ theme: "nord" }) }
+        { highlighter: await shiki.getHighlighter({ theme: "one-dark-pro" }) }
       ]
     ]
   });
 }
 
+// src/node/plugin-mdx/pluginMdxHmr.ts
+import assert from "assert";
+function pluginMdxHMR() {
+  let viteReactPlugin;
+  return {
+    name: "vite-plugin-mdx-hmr",
+    apply: "serve",
+    // 寻找vite的react插件
+    configResolved(config) {
+      viteReactPlugin = config.plugins.find(
+        (plugin) => plugin.name === "vite:react-babel"
+      );
+    },
+    async transform(code, id, opts) {
+      if (/\.mdx?$/.test(id)) {
+        assert(typeof viteReactPlugin.transform === "function");
+        const result = await viteReactPlugin.transform?.call(
+          this,
+          code,
+          id + "?.jsx",
+          opts
+        );
+        const selfAcceptCode = "import.meta.hot.accept();";
+        if (typeof result === "object" && !result.code?.includes(selfAcceptCode)) {
+          result.code += selfAcceptCode;
+        }
+        return result;
+      }
+    }
+  };
+}
+
 // src/node/plugin-mdx/index.ts
-function createMdxPlugins() {
-  return [pluginMdxRollup()];
+async function createMdxPlugins() {
+  return [await pluginMdxRollup(), pluginMdxHMR()];
 }
 
 // src/node/vitePlugins.ts
-function createVitePlugins(config, restartServer) {
+async function createVitePlugins(config, restartServer, isSSR = false) {
   return [
     pluginIndexHtml(),
     pluginReact({ jsxRuntime: "automatic" }),
     pluginConfig(config, restartServer),
-    pluginRoutes({ root: config.root }),
-    createMdxPlugins()
+    pluginRoutes({ root: config.root, isSSR }),
+    await createMdxPlugins()
   ];
 }
 
