@@ -8,14 +8,15 @@ import remarkPluginFrontmatter from 'remark-frontmatter';
 import { rehypePluginPreWrapper } from './rehypePlugins/preWrapper';
 import shiki from 'shiki';
 import { rehypePluginShiki } from './rehypePlugins/shiki';
-
+import { remarkPluginToc } from './remarkPlugins/toc';
 export async function pluginMdxRollup(): Promise<Plugin> {
   return pluginMdx({
     remarkPlugins: [
       remarkPluginGFM,
       // 去解析页面的元信息
       remarkPluginFrontmatter,
-      [remarkPluginMDXFrontMatter, { name: 'frontmatter' }]
+      [remarkPluginMDXFrontMatter, { name: 'frontmatter' }],
+      remarkPluginToc
     ],
     rehypePlugins: [
       rehypePluginSlug,
