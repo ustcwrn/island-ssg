@@ -21,7 +21,7 @@ interface ChildNode {
 
 export const remarkPluginToc: Plugin<[], Root> = () => {
   return (tree) => {
-    const toc: TocItem[] = [];
+    const Toc: TocItem[] = [];
     visit(tree, 'heading', (node) => {
       if (!node.depth || !node.children) {
         return;
@@ -62,7 +62,7 @@ export const remarkPluginToc: Plugin<[], Root> = () => {
           })
           .join('');
         const id = slugger.slug(originText);
-        toc.push({
+        Toc.push({
           id,
           text: originText,
           depth: node.depth
@@ -70,8 +70,7 @@ export const remarkPluginToc: Plugin<[], Root> = () => {
       }
     });
 
-    const insertCode = `export const toc = ${JSON.stringify(toc, null, 2)};`;
-
+    const insertCode = `export const Toc = ${JSON.stringify(Toc, null, 2)};`;
     tree.children.push({
       type: 'mdxjsEsm',
       value: insertCode,
@@ -82,5 +81,6 @@ export const remarkPluginToc: Plugin<[], Root> = () => {
         }) as unknown as Program
       }
     } as MdxjsEsm);
+    console.log(tree.children);
   };
 };

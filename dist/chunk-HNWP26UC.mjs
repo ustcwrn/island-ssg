@@ -170,7 +170,7 @@ var RouteService = class {
     }).join("\n")}
   export const routes = [
   ${this.#routeData.map((route, index) => {
-      return `{ path: '${route.routePath}', element: React.createElement(Route${index}) }`;
+      return `{ path: '${route.routePath}', element: React.createElement(Route${index}), preload: () => import('${route.absolutePath}') }`;
     }).join(",\n")}
   ];
   `;
@@ -478,7 +478,7 @@ import { parse } from "acorn";
 var slugger = new Slugger();
 var remarkPluginToc = () => {
   return (tree) => {
-    const toc = [];
+    const Toc = [];
     visit(tree, "heading", (node) => {
       if (!node.depth || !node.children) {
         return;
@@ -493,14 +493,14 @@ var remarkPluginToc = () => {
           }
         }).join("");
         const id = slugger.slug(originText);
-        toc.push({
+        Toc.push({
           id,
           text: originText,
           depth: node.depth
         });
       }
     });
-    const insertCode = `export const toc = ${JSON.stringify(toc, null, 2)};`;
+    const insertCode = `export const Toc = ${JSON.stringify(Toc, null, 2)};`;
     tree.children.push({
       type: "mdxjsEsm",
       value: insertCode,
@@ -511,6 +511,7 @@ var remarkPluginToc = () => {
         })
       }
     });
+    console.log(tree.children[tree.children.length - 1]);
   };
 };
 
@@ -590,6 +591,9 @@ import pluginUnocss from "unocss/vite";
 // src/node/unocssOptions.ts
 import { presetAttributify, presetWind, presetIcons } from "unocss";
 var options = {
+  // presetAttributify: 属性化功能支持
+  // presetWind： 兼容Tailwind、windi的语法
+  // presetIcons： 接入图标的功能
   presets: [presetAttributify(), presetWind({}), presetIcons()]
 };
 var unocssOptions_default = options;
@@ -597,12 +601,12 @@ var unocssOptions_default = options;
 // src/node/vitePlugins.ts
 async function createVitePlugins(config, restartServer, isSSR = false) {
   return [
+    pluginUnocss(unocssOptions_default),
     pluginIndexHtml(),
     pluginReact({ jsxRuntime: "automatic" }),
     pluginConfig(config, restartServer),
     pluginRoutes({ root: config.root, isSSR }),
-    await createMdxPlugins(),
-    pluginUnocss(unocssOptions_default)
+    await createMdxPlugins()
   ];
 }
 

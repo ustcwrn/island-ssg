@@ -170,7 +170,7 @@ var RouteService = class {
     }).join("\n")}
   export const routes = [
   ${this.#routeData.map((route, index) => {
-      return `{ path: '${route.routePath}', element: React.createElement(Route${index}) }`;
+      return `{ path: '${route.routePath}', element: React.createElement(Route${index}), preload: () => import('${route.absolutePath}') }`;
     }).join(",\n")}
   ];
   `;
@@ -187,8 +187,8 @@ var RouteService = class {
 
 // src/node/plugin-routes/index.ts
 var CONVENTIONAL_ROUTE_ID = "island:routes";
-function pluginRoutes(options) {
-  const routeService = new RouteService(options.root);
+function pluginRoutes(options2) {
+  const routeService = new RouteService(options2.root);
   return {
     name: "island:routes",
     async configResolved() {
@@ -203,7 +203,7 @@ function pluginRoutes(options) {
     // 加载内容的的钩子
     load(id) {
       if (id === "\0" + CONVENTIONAL_ROUTE_ID) {
-        return routeService.generateRoutesCode(options.isSSR || false);
+        return routeService.generateRoutesCode(options2.isSSR || false);
       }
     }
   };
@@ -478,7 +478,7 @@ import { parse } from "acorn";
 var slugger = new Slugger();
 var remarkPluginToc = () => {
   return (tree) => {
-    const toc = [];
+    const Toc = [];
     visit(tree, "heading", (node) => {
       if (!node.depth || !node.children) {
         return;
@@ -493,24 +493,36 @@ var remarkPluginToc = () => {
           }
         }).join("");
         const id = slugger.slug(originText);
-        toc.push({
+        Toc.push({
           id,
           text: originText,
           depth: node.depth
         });
       }
     });
-    const insertCode = `export const toc = ${JSON.stringify(toc, null, 2)};`;
-    tree.children.push({
-      type: "mdxjsEsm",
-      value: insertCode,
-      data: {
-        estree: parse(insertCode, {
-          ecmaVersion: 2020,
-          sourceType: "module"
-        })
+    const insertCode = `export const Toc = ${JSON.stringify(Toc, null, 2)};`;
+    tree.children.push(
+      {
+        type: "mdxjsEsm",
+        value: insertCode,
+        data: {
+          estree: parse(insertCode, {
+            ecmaVersion: 2020,
+            sourceType: "module"
+          })
+        }
+      },
+      {
+        type: "mdxjsEsm",
+        value: "export const wangruonan = 123",
+        data: {
+          estree: parse("export const wangruonan = 123", {
+            ecmaVersion: 2020,
+            sourceType: "module"
+          })
+        }
       }
-    });
+    );
   };
 };
 
@@ -585,8 +597,22 @@ async function createMdxPlugins() {
 }
 
 // src/node/vitePlugins.ts
+import pluginUnocss from "unocss/vite";
+
+// src/node/unocssOptions.ts
+import { presetAttributify, presetWind, presetIcons } from "unocss";
+var options = {
+  // presetAttributify: 属性化功能支持
+  // presetWind： 兼容Tailwind、windi的语法
+  // presetIcons： 接入图标的功能
+  presets: [presetAttributify(), presetWind({}), presetIcons()]
+};
+var unocssOptions_default = options;
+
+// src/node/vitePlugins.ts
 async function createVitePlugins(config, restartServer, isSSR = false) {
   return [
+    pluginUnocss(unocssOptions_default),
     pluginIndexHtml(),
     pluginReact({ jsxRuntime: "automatic" }),
     pluginConfig(config, restartServer),

@@ -166,7 +166,7 @@ var RouteService = class {
     }).join("\n")}
   export const routes = [
   ${this.#routeData.map((route, index) => {
-      return `{ path: '${route.routePath}', element: React.createElement(Route${index}) }`;
+      return `{ path: '${route.routePath}', element: React.createElement(Route${index}), preload: () => import('${route.absolutePath}') }`;
     }).join(",\n")}
   ];
   `;
@@ -474,7 +474,7 @@ var _acorn = require('acorn');
 var slugger = new (0, _githubslugger2.default)();
 var remarkPluginToc = () => {
   return (tree) => {
-    const toc = [];
+    const Toc = [];
     visit(tree, "heading", (node) => {
       if (!node.depth || !node.children) {
         return;
@@ -489,14 +489,14 @@ var remarkPluginToc = () => {
           }
         }).join("");
         const id = slugger.slug(originText);
-        toc.push({
+        Toc.push({
           id,
           text: originText,
           depth: node.depth
         });
       }
     });
-    const insertCode = `export const toc = ${JSON.stringify(toc, null, 2)};`;
+    const insertCode = `export const Toc = ${JSON.stringify(Toc, null, 2)};`;
     tree.children.push({
       type: "mdxjsEsm",
       value: insertCode,
@@ -507,6 +507,7 @@ var remarkPluginToc = () => {
         })
       }
     });
+    console.log(tree.children[tree.children.length - 1]);
   };
 };
 
@@ -586,6 +587,9 @@ var _vite3 = require('unocss/vite'); var _vite4 = _interopRequireDefault(_vite3)
 // src/node/unocssOptions.ts
 var _unocss = require('unocss');
 var options = {
+  // presetAttributify: 属性化功能支持
+  // presetWind： 兼容Tailwind、windi的语法
+  // presetIcons： 接入图标的功能
   presets: [_unocss.presetAttributify.call(void 0, ), _unocss.presetWind.call(void 0, {}), _unocss.presetIcons.call(void 0, )]
 };
 var unocssOptions_default = options;
@@ -593,12 +597,12 @@ var unocssOptions_default = options;
 // src/node/vitePlugins.ts
 async function createVitePlugins(config, restartServer, isSSR = false) {
   return [
+    _vite4.default.call(void 0, unocssOptions_default),
     pluginIndexHtml(),
     _pluginreact2.default.call(void 0, { jsxRuntime: "automatic" }),
     pluginConfig(config, restartServer),
     pluginRoutes({ root: config.root, isSSR }),
-    await createMdxPlugins(),
-    _vite4.default.call(void 0, unocssOptions_default)
+    await createMdxPlugins()
   ];
 }
 
