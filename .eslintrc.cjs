@@ -22,6 +22,7 @@ module.exports = {
         semi: ['error', 'always'],
         // 关闭导入react的规则
         'react/react-in-jsx-scope' : 'off',
+        'react/no-unknown-property': 'off'
     },
     settings: {
         react: {

@@ -2,7 +2,7 @@
 
 
 
-var _chunkWTLW4ADCjs = require('./chunk-WTLW4ADC.js');
+var _chunk35XLAMOBjs = require('./chunk-35XLAMOB.js');
 
 
 var _chunk3W46IG2Ajs = require('./chunk-3W46IG2A.js');
@@ -23,7 +23,7 @@ async function bundle(root, config) {
         mode: "production",
         root,
         // 传入isServer参数
-        plugins: await _chunkWTLW4ADCjs.createVitePlugins.call(void 0, config, void 0, isServer),
+        plugins: await _chunk35XLAMOBjs.createVitePlugins.call(void 0, config, void 0, isServer),
         ssr: {
           // 注意加上这个配置，防止 cjs 产物中 require ESM 的产物，因为 react-router-dom 的产物为 ESM 格式
           noExternal: ["react-router-dom"]
@@ -32,7 +32,7 @@ async function bundle(root, config) {
           ssr: isServer,
           outDir: isServer ? _path2.default.join(root, ".temp") : _path2.default.join(root, "build"),
           rollupOptions: {
-            input: isServer ? _chunkWTLW4ADCjs.SERVER_ENTRY_PATH : _chunkWTLW4ADCjs.CLIENT_ENTRY_PATH,
+            input: isServer ? _chunk35XLAMOBjs.SERVER_ENTRY_PATH : _chunk35XLAMOBjs.CLIENT_ENTRY_PATH,
             output: {
               format: isServer ? "cjs" : "esm"
             }
