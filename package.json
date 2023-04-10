@@ -63,6 +63,7 @@
   "devDependencies": {
     "@commitlint/cli": "^17.5.1",
     "@commitlint/config-conventional": "^17.4.4",
+    "@iconify-json/carbon": "^1.1.16",
     "@loadable/component": "^5.15.3",
     "@playwright/test": "1.26.1",
     "@types/hast": "^2.3.4",
@@ -79,6 +80,7 @@
     "execa": "^7.1.1",
     "lint-staged": "^13.2.0",
     "rollup": "^3.20.2",
+    "sass": "^1.61.0",
     "tsup": "^6.7.0",
     "tsx": "^3.12.6",
     "typescript": "^5.0.2",

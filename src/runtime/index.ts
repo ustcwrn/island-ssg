@@ -1,2 +1,2 @@
 export { Content } from './Content';
-// export * from './hooks';
+export * from './hooks';
