@@ -1,7 +1,7 @@
 import * as path from 'path';
 
 export const PACKAGE_ROOT = path.join(__dirname, '..');
-
+console.log(__dirname);
 export const DEFAULT_HTML_PATH = path.join(PACKAGE_ROOT, 'template.html');
 
 export const CLIENT_ENTRY_PATH = path.join(

@@ -1,4 +1,3 @@
-import { Page } from '@playwright/test';
 import { UserConfig as viteConfiguration } from 'vite';
 import { ComponentType } from 'react';
 
@@ -8,20 +7,20 @@ export type NavItemWithLink = {
   link: string;
 };
 
-export interface SiderBarGroup {
+export interface SidebarGroup {
   text: string;
-  items: SiderBarItem[];
+  items: SidebarItem[];
 }
 
 // 侧边栏子项类型
-export type SiderBarItem = {
+export type SidebarItem = {
   text: string;
   link: string;
 };
 
 // 侧边栏
-export interface SiderBar {
-  [path: string]: SiderBarGroup[];
+export interface SideBar {
+  [path: string]: SidebarGroup[];
 }
 
 // 页脚
@@ -32,7 +31,7 @@ export interface Footer {
 // 主题配置
 export interface Themeconfig {
   nav?: NavItemWithLink[];
-  siderbar?: SiderBar;
+  sidebar?: SideBar;
   footer?: Footer;
 }
 
@@ -58,12 +57,35 @@ export interface Header {
   depth: number;
 }
 
+export interface Feature {
+  icon: string;
+  title: string;
+  details: string;
+}
+
+export interface Hero {
+  name: string;
+  text: string;
+  tagline: string;
+  image?: {
+    src: string;
+    alt: string;
+  };
+  actions: {
+    text: string;
+    link: string;
+    theme: 'brand' | 'alt';
+  }[];
+}
+
 export interface FrontMatter {
   title?: string;
   descripiton?: string;
   pageType?: PageType;
   siderbar?: boolean;
   outline?: boolean;
+  features?: Feature[];
+  hero?: Hero;
 }
 
 export interface PageData {

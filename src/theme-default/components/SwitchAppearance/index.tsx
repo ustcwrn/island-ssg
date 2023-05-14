@@ -9,7 +9,6 @@ interface SwitchProps {
 }
 
 export function Switch(props: SwitchProps) {
-  console.log('props', props);
   return (
     <button
       className={`${styles.switch} ${props.className}`}

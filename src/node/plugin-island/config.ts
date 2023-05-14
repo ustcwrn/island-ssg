@@ -3,6 +3,7 @@ import { Plugin, normalizePath } from 'vite';
 import { SiteConfig } from 'shared/types/index';
 import { PACKAGE_ROOT } from '../../node/constants';
 import { join } from 'path';
+import sirv from 'sirv';
 
 const SITE_DATA_ID = 'island:site-data';
 
@@ -28,7 +29,7 @@ export function pluginConfig(
         root: PACKAGE_ROOT,
         resolve: {
           alias: {
-            '@runtime': join(PACKAGE_ROOT, 'src', 'runtime', 'index.ts')
+            runtime: join(PACKAGE_ROOT, 'src', 'runtime', 'index.ts')
           }
         },
         css: {
@@ -60,6 +61,10 @@ export function pluginConfig(
         // ✅ 可行
         await restartServer();
       }
+    },
+    configureServer(server) {
+      const publicDir = join(config.root, 'public');
+      server.middlewares.use(sirv(publicDir));
     }
   };
 }

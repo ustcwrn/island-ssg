@@ -4,23 +4,23 @@ type NavItemWithLink = {
     text: string;
     link: string;
 };
-interface SiderBarGroup {
+interface SidebarGroup {
     text: string;
-    items: SiderBarItem[];
+    items: SidebarItem[];
 }
-type SiderBarItem = {
+type SidebarItem = {
     text: string;
     link: string;
 };
-interface SiderBar {
-    [path: string]: SiderBarGroup[];
+interface SideBar {
+    [path: string]: SidebarGroup[];
 }
 interface Footer {
     message: string;
 }
 interface Themeconfig {
     nav?: NavItemWithLink[];
-    siderbar?: SiderBar;
+    sidebar?: SideBar;
     footer?: Footer;
 }
 interface UserConfig {

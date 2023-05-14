@@ -8,7 +8,8 @@ import { Route } from '../node/plugin-routes';
 export async function initPageData(routePath: string): Promise<PageData> {
   // 获取路由组件编译后的模块内容
   const matched = matchRoutes(routes, routePath);
-  // console.log(routes, routePath, matched);
+  console.log(routes, routePath);
+  console.log(matched);
   /** matched的结构
    * [
       {
@@ -34,17 +35,15 @@ export async function initPageData(routePath: string): Promise<PageData> {
     const route = matched[0].route as Route;
     //  preload 方法，它的作用就是为了获取路由组件编译后的模块内容
     const moduleInfo = await route.preload();
-    console.log(route, moduleInfo);
-    // console.log(import('/docs/guide/a.tsx'));
     return {
-      pageType: 'doc',
+      pageType: moduleInfo.frontmatter?.pageType ?? 'doc',
       siteData,
       frontmatter: moduleInfo.frontmatter,
       pagePath: routePath
     };
   }
   return {
-    pageType: '404',
+    pageType: 'doc',
     siteData,
     pagePath: routePath,
     frontmatter: {}

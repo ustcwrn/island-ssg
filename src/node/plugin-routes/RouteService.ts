@@ -52,7 +52,7 @@ export class RouteService {
 
   /**
    *
-   * srr 之前我们通过 @loadable/component 进行浏览器端的按需加载
+   * ssr 之前我们通过 @loadable/component 进行浏览器端的按需加载
    * 避免请求全量的组件代码，可以降低网络 IO 的开销
    * 但在 SSR/SSG 阶段，所有的 JS 都通过本地磁盘进行读取
    * 并没有网络 IO 开销相关的负担
