@@ -8,8 +8,8 @@ import { Route } from '../node/plugin-routes';
 export async function initPageData(routePath: string): Promise<PageData> {
   // 获取路由组件编译后的模块内容
   const matched = matchRoutes(routes, routePath);
-  console.log(routes, routePath);
-  console.log(matched);
+  // console.log(routes, routePath);
+  // console.log(matched);
   /** matched的结构
    * [
       {
