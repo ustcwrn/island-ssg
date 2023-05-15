@@ -1,6 +1,6 @@
 import { Header } from 'shared/types';
-import { useRef } from 'react';
-// import { bindingAsideScroll, scrollToTarget } from '../../logic/asideScroll';
+import { useRef, useEffect } from 'react';
+import { bindingAsideScroll, scrollToTarget } from '../../logic/asideScroll';
 
 interface AsideProps {
   headers: Header[];
@@ -8,6 +8,7 @@ interface AsideProps {
 
 export function Aside(props: AsideProps) {
   const { headers = [] } = props;
+  console.log(headers);
   // 是否展示大纲栏
   const hasOutline = headers.length > 0;
   // 当前标题会进行高亮处理，我们会在这个标题前面加一个 marker 元素
@@ -23,12 +24,25 @@ export function Aside(props: AsideProps) {
           style={{
             paddingLeft: (header.depth - 2) * 12
           }}
+          onClick={(e) => {
+            e.preventDefault();
+            const target = document.getElementById(header.id);
+            target && scrollToTarget(target, false);
+          }}
         >
           {header.text}
         </a>
       </li>
     );
   };
+
+  // 组件内逻辑
+  useEffect(() => {
+    const unbinding = bindingAsideScroll();
+    return () => {
+      unbinding();
+    };
+  }, []);
 
   return (
     <div

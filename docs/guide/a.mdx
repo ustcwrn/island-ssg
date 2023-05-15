@@ -1,0 +1,40 @@
+### 发布订阅
+
+```js
+class EventSub {
+  map = {};
+
+  on(name, fn) {
+    this.map[name] = this.map[name] || [];
+    this.map[name].push(fn);
+  }
+
+  emit(name, data) {
+    const fnList = this.map[name] || [];
+    fnList.forEach((fn) => {
+      fn(data);
+    });
+  }
+  off(name, fn) {
+    const fnList = this.map[name] || [];
+    const index = fnList.indexOf(fn);
+    if (index < 0) return;
+    fnList.splice(index, 1);
+  }
+}
+
+const e = new EventSub();
+const hi = (name) => {
+  console.log("hi " + name);
+};
+e.on("click", hi);
+
+e.on("click", (name) => {
+  console.log("hello " + name);
+});
+e.emit("click", "frank");
+e.off("click", hi);
+console.log(e.map);
+e.emit("click", "frank");
+
+```

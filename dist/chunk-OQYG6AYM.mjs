@@ -5,7 +5,6 @@ import {
 // src/node/constants/index.ts
 import * as path from "path";
 var PACKAGE_ROOT = path.join(__dirname, "..");
-console.log(__dirname);
 var DEFAULT_HTML_PATH = path.join(PACKAGE_ROOT, "template.html");
 var CLIENT_ENTRY_PATH = path.join(
   PACKAGE_ROOT,
