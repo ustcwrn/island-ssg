@@ -33,6 +33,18 @@ export function pluginMdxHMR(): Plugin {
         }
         return result;
       }
+    },
+    // 作用就是在 mdx 文件变动时给浏览器发送通知事件
+    handleHotUpdate(ctx) {
+      if (/\.mdx?/.test(ctx.file)) {
+        ctx.server.ws.send({
+          type: 'custom',
+          event: 'mdx-changed',
+          data: {
+            filePath: ctx.file
+          }
+        });
+      }
     }
   };
 }

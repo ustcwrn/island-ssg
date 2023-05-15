@@ -1,7 +1,7 @@
 "use strict";Object.defineProperty(exports, "__esModule", {value: true});
 
 
-var _chunkFOG4VNYMjs = require('./chunk-FOG4VNYM.js');
+var _chunkLNLEU5LEjs = require('./chunk-LNLEU5LE.js');
 
 
 var _chunk3W46IG2Ajs = require('./chunk-3W46IG2A.js');
@@ -12,10 +12,10 @@ async function createDevServer(root, restartServer) {
   const config = await _chunk3W46IG2Ajs.resolveConfig.call(void 0, root, "serve", "development");
   return _vite.createServer.call(void 0, {
     root,
-    plugins: await _chunkFOG4VNYMjs.createVitePlugins.call(void 0, config, restartServer),
+    plugins: await _chunkLNLEU5LEjs.createVitePlugins.call(void 0, config, restartServer),
     server: {
       fs: {
-        allow: [_chunkFOG4VNYMjs.PACKAGE_ROOT]
+        allow: [_chunkLNLEU5LEjs.PACKAGE_ROOT]
       }
     }
   });

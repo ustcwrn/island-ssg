@@ -2,7 +2,7 @@ import {
   CLIENT_ENTRY_PATH,
   SERVER_ENTRY_PATH,
   createVitePlugins
-} from "./chunk-OQYG6AYM.mjs";
+} from "./chunk-MCEMCY7W.mjs";
 import {
   resolveConfig
 } from "./chunk-I7RX6JT6.mjs";
@@ -26,7 +26,7 @@ async function bundle(root, config) {
         plugins: await createVitePlugins(config, void 0, isServer),
         ssr: {
           // 注意加上这个配置，防止 cjs 产物中 require ESM 的产物，因为 react-router-dom 的产物为 ESM 格式
-          noExternal: ["react-router-dom"]
+          noExternal: ["react-router-dom", "lodash-es"]
         },
         build: {
           ssr: isServer,

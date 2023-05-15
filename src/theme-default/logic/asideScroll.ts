@@ -1,4 +1,4 @@
-import { throttle } from 'lodash-es';
+// import { throttle } from 'lodash-es';
 
 let links: HTMLAnchorElement[] = [];
 // 导航栏高度
