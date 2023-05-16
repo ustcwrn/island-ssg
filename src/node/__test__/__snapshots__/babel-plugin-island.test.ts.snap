@@ -1,0 +1,10 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`babel-plugin-island > Should compile jsx identifier 1`] = `
+"import Aside from '../Comp/index';
+export default function App() {
+  return /*#__PURE__*/React.createElement(Aside, {
+    __island: \\"../Comp/index!!ISLAND!!C:/User/project/test.tsx\\"
+  });
+}"
+`;
