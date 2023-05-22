@@ -2,7 +2,7 @@ import {
   CLIENT_ENTRY_PATH,
   SERVER_ENTRY_PATH,
   createVitePlugins
-} from "./chunk-MCEMCY7W.mjs";
+} from "./chunk-O6AKEET3.mjs";
 import {
   resolveConfig
 } from "./chunk-I7RX6JT6.mjs";
@@ -59,11 +59,10 @@ async function renderPage(render, root, clientBundle, routes) {
   const clientChunk = clientBundle.output.find(
     (chunk) => chunk.type === "chunk" && chunk.isEntry
   );
-  console.log(routes);
   return Promise.all(
     routes.map(async (route) => {
       const routePath = route.path;
-      const appHtml = await render(routePath);
+      const { appHtml, islandToPathMap, propsData } = await render(routePath);
       const html = `<!DOCTYPE html>
     <html>
       <head>
@@ -80,7 +79,6 @@ async function renderPage(render, root, clientBundle, routes) {
       const fileName = routePath.endsWith("/") ? `${routePath}index.html` : `${routePath}.html`;
       await fs.ensureDir(path.join(root, "build", dirname(fileName)));
       await fs.writeFile(path.join(root, "build", fileName), html);
-      await fs.remove(path.join(root, ".temp"));
     })
   );
 }

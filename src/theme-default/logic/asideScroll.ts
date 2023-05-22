@@ -16,7 +16,7 @@ export function bindingAsideScroll() {
     (item) => decodeURIComponent(item.hash)
   );
   const activate = (links: HTMLAnchorElement[], index: number) => {
-    console.log(headers, links, index);
+    // console.log(headers, links, index);
     if (links[index]) {
       const id = links[index].getAttribute('href');
       const tocIndex = headers.findIndex((item) => item === id);

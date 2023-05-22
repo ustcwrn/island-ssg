@@ -4,7 +4,7 @@ import { HomeFeature } from '../../components/HomeFeatrue';
 
 export default function HomeLayout() {
   const { frontmatter } = usePageData();
-  console.log('home页面元信息：', frontmatter);
+  // console.log('home页面元信息：', frontmatter);
   return (
     <div>
       <HomeHero hero={frontmatter.hero} />

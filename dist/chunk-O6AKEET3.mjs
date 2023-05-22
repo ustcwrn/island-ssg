@@ -18,6 +18,7 @@ var SERVER_ENTRY_PATH = path.join(
   "runtime",
   "ssr-entry.tsx"
 );
+var MASK_SPLITTER = "!!ISLAND!!";
 
 // src/node/plugin-island/indexHtml.ts
 import { readFile } from "fs/promises";
@@ -488,7 +489,6 @@ import { parse } from "acorn";
 var remarkPluginToc = () => {
   const slugger = new Slugger();
   return (tree) => {
-    console.log("tree", tree);
     const Toc = [];
     visit(tree, "heading", (node) => {
       if (!node.depth || !node.children) {
@@ -676,11 +676,65 @@ var options = {
 var unocssOptions_default = options;
 
 // src/node/vitePlugins.ts
+import path3 from "path";
+
+// src/node/babel-plugin-island.ts
+import { declare } from "@babel/helper-plugin-utils";
+import { types as t } from "@babel/core";
+import { normalizePath as normalizePath3 } from "vite";
+var babel_plugin_island_default = declare((api) => {
+  api.assertVersion(7);
+  const visitor = {
+    // 访问 JSX 开始标签
+    JSXOpeningElement(path4, state) {
+      const name = path4.node.name;
+      let bindingName = "";
+      if (name.type === "JSXIdentifier") {
+        bindingName = name.name;
+      } else if (name.type === "JSXMemberExpression") {
+        let object = name.object;
+        while (t.isJSXMemberExpression(object)) {
+          object = object.object;
+        }
+        bindingName = object.name;
+      } else {
+        return;
+      }
+      const binding = path4.scope.getBinding(bindingName);
+      if (binding?.path.parent.type === "ImportDeclaration") {
+        const source = binding.path.parent.source;
+        const attributes = path4.container.openingElement.attributes;
+        for (let i = 0; i < attributes.length; i++) {
+          const name2 = attributes[i].name;
+          if (name2?.name === "__island") {
+            attributes[i].value = t.stringLiteral(
+              `${source.value}${MASK_SPLITTER}${normalizePath3(
+                state.filename || ""
+              )}`
+            );
+          }
+        }
+      }
+    }
+  };
+  return {
+    name: "transform-jsx-island",
+    visitor
+  };
+});
+
+// src/node/vitePlugins.ts
 async function createVitePlugins(config, restartServer, isSSR = false) {
   return [
     pluginUnocss(unocssOptions_default),
     pluginIndexHtml(),
-    pluginReact({ jsxRuntime: "automatic" }),
+    pluginReact({
+      jsxRuntime: "automatic",
+      jsxImportSource: isSSR ? path3.join(PACKAGE_ROOT, "src", "runtime") : "react",
+      babel: {
+        plugins: [babel_plugin_island_default]
+      }
+    }),
     pluginConfig(config, restartServer),
     pluginRoutes({ root: config.root, isSSR }),
     await createMdxPlugins()

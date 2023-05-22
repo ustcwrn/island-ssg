@@ -2,7 +2,7 @@
 
 
 
-var _chunkLNLEU5LEjs = require('./chunk-LNLEU5LE.js');
+var _chunkWR7TEY46js = require('./chunk-WR7TEY46.js');
 
 
 var _chunk3W46IG2Ajs = require('./chunk-3W46IG2A.js');
@@ -23,7 +23,7 @@ async function bundle(root, config) {
         mode: "production",
         root,
         // 传入isServer参数
-        plugins: await _chunkLNLEU5LEjs.createVitePlugins.call(void 0, config, void 0, isServer),
+        plugins: await _chunkWR7TEY46js.createVitePlugins.call(void 0, config, void 0, isServer),
         ssr: {
           // 注意加上这个配置，防止 cjs 产物中 require ESM 的产物，因为 react-router-dom 的产物为 ESM 格式
           noExternal: ["react-router-dom", "lodash-es"]
@@ -32,7 +32,7 @@ async function bundle(root, config) {
           ssr: isServer,
           outDir: isServer ? _path2.default.join(root, ".temp") : _path2.default.join(root, "build"),
           rollupOptions: {
-            input: isServer ? _chunkLNLEU5LEjs.SERVER_ENTRY_PATH : _chunkLNLEU5LEjs.CLIENT_ENTRY_PATH,
+            input: isServer ? _chunkWR7TEY46js.SERVER_ENTRY_PATH : _chunkWR7TEY46js.CLIENT_ENTRY_PATH,
             output: {
               format: isServer ? "cjs" : "esm"
             }
@@ -59,11 +59,10 @@ async function renderPage(render, root, clientBundle, routes) {
   const clientChunk = clientBundle.output.find(
     (chunk) => chunk.type === "chunk" && chunk.isEntry
   );
-  console.log(routes);
   return Promise.all(
     routes.map(async (route) => {
       const routePath = route.path;
-      const appHtml = await render(routePath);
+      const { appHtml, islandToPathMap, propsData } = await render(routePath);
       const html = `<!DOCTYPE html>
     <html>
       <head>
@@ -80,7 +79,6 @@ async function renderPage(render, root, clientBundle, routes) {
       const fileName = routePath.endsWith("/") ? `${routePath}index.html` : `${routePath}.html`;
       await _fsextra2.default.ensureDir(_path2.default.join(root, "build", _path.dirname.call(void 0, fileName)));
       await _fsextra2.default.writeFile(_path2.default.join(root, "build", fileName), html);
-      await _fsextra2.default.remove(_path2.default.join(root, ".temp"));
     })
   );
 }

@@ -9,7 +9,7 @@ export async function initPageData(routePath: string): Promise<PageData> {
   // 获取路由组件编译后的模块内容
   const matched = matchRoutes(routes, routePath);
 
-  console.log('matched:', matched);
+  // console.log('matched:', matched);
   /** matched的结构
    * [
       {
@@ -35,7 +35,7 @@ export async function initPageData(routePath: string): Promise<PageData> {
     const route = matched[0].route as Route;
     //  preload 方法，它的作用就是为了获取路由组件编译后的模块内容
     const moduleInfo = await route.preload();
-    console.log(moduleInfo);
+    // console.log(moduleInfo);
     return {
       pageType: moduleInfo.frontmatter?.pageType ?? 'doc',
       siteData,

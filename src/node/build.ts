@@ -58,7 +58,7 @@ export async function bundle(root: string, config: SiteConfig) {
   }
 }
 export async function renderPage(
-  render: (url: string) => string,
+  render,
   root: string,
   clientBundle: RollupOutput,
   routes: Route[]
@@ -67,11 +67,10 @@ export async function renderPage(
   const clientChunk = clientBundle.output.find(
     (chunk) => chunk.type === 'chunk' && chunk.isEntry
   );
-  console.log(routes);
   return Promise.all(
     routes.map(async (route) => {
       const routePath = route.path;
-      const appHtml = await render(routePath);
+      const { appHtml, islandToPathMap, propsData } = await render(routePath);
       const html = `<!DOCTYPE html>
     <html>
       <head>
@@ -92,7 +91,7 @@ export async function renderPage(
       await fs.ensureDir(path.join(root, 'build', dirname(fileName)));
       await fs.writeFile(path.join(root, 'build', fileName), html);
       // 删除.temp
-      await fs.remove(path.join(root, '.temp'));
+      // await fs.remove(path.join(root, '.temp'));
     })
   );
 }

@@ -3,7 +3,7 @@ import { usePrevNextPage } from '../../logic/usePrevNextPage';
 
 export function DocFooter() {
   const { prevPage, nextPage } = usePrevNextPage();
-  console.log(prevPage, nextPage);
+  // console.log(prevPage, nextPage);
   return (
     <footer mt="8">
       <div flex="~" gap="2" divider-top="~" pt="6">
