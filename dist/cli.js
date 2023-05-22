@@ -2,7 +2,8 @@
 
 
 
-var _chunkWR7TEY46js = require('./chunk-WR7TEY46.js');
+
+var _chunkZ23NZUXPjs = require('./chunk-Z23NZUXP.js');
 
 
 var _chunk3W46IG2Ajs = require('./chunk-3W46IG2A.js');
@@ -23,7 +24,7 @@ async function bundle(root, config) {
         mode: "production",
         root,
         // 传入isServer参数
-        plugins: await _chunkWR7TEY46js.createVitePlugins.call(void 0, config, void 0, isServer),
+        plugins: await _chunkZ23NZUXPjs.createVitePlugins.call(void 0, config, void 0, isServer),
         ssr: {
           // 注意加上这个配置，防止 cjs 产物中 require ESM 的产物，因为 react-router-dom 的产物为 ESM 格式
           noExternal: ["react-router-dom", "lodash-es"]
@@ -32,7 +33,7 @@ async function bundle(root, config) {
           ssr: isServer,
           outDir: isServer ? _path2.default.join(root, ".temp") : _path2.default.join(root, "build"),
           rollupOptions: {
-            input: isServer ? _chunkWR7TEY46js.SERVER_ENTRY_PATH : _chunkWR7TEY46js.CLIENT_ENTRY_PATH,
+            input: isServer ? _chunkZ23NZUXPjs.SERVER_ENTRY_PATH : _chunkZ23NZUXPjs.CLIENT_ENTRY_PATH,
             output: {
               format: isServer ? "cjs" : "esm"
             }
@@ -55,6 +56,59 @@ async function bundle(root, config) {
     console.log(e);
   }
 }
+async function buildIslands(root, islandPathToMap) {
+  const islandsInjectCode = `
+    ${Object.entries(islandPathToMap).map(
+    ([islandName, islandPath]) => `import { ${islandName} } from '${islandPath}'`
+  ).join("")}
+window.ISLANDS = { ${Object.keys(islandPathToMap).join(", ")} };
+window.ISLAND_PROPS = JSON.parse(
+  document.getElementById('island-props').textContent
+);
+  `;
+  const injectId = "island:inject";
+  return _vite.build.call(void 0, {
+    mode: "production",
+    build: {
+      // 输出目录
+      outDir: _path2.default.join(root, ".temp"),
+      rollupOptions: {
+        // 让rollup加载虚拟模块
+        input: injectId
+      }
+    },
+    plugins: [
+      // 重点插件，用来加载我们拼接的 Islands 注册模块的代码
+      {
+        name: "island:inject",
+        enforce: "post",
+        resolveId(id) {
+          if (id.includes(_chunkZ23NZUXPjs.MASK_SPLITTER)) {
+            const [originId, importer] = id.split(_chunkZ23NZUXPjs.MASK_SPLITTER);
+            return this.resolve(originId, importer, { skipSelf: true });
+          }
+          if (id === injectId) {
+            return id;
+          }
+        },
+        // 加载resolve(id)后的代码
+        load(id) {
+          if (id === injectId) {
+            return islandsInjectCode;
+          }
+        },
+        // 对于 Islands Bundle，我们只需要 JS 即可，其它资源文件可以删除
+        generateBundle(_, bundle2) {
+          for (const name in bundle2) {
+            if (bundle2[name].type === "asset") {
+              delete bundle2[name];
+            }
+          }
+        }
+      }
+    ]
+  });
+}
 async function renderPage(render, root, clientBundle, routes) {
   const clientChunk = clientBundle.output.find(
     (chunk) => chunk.type === "chunk" && chunk.isEntry
@@ -63,6 +117,7 @@ async function renderPage(render, root, clientBundle, routes) {
     routes.map(async (route) => {
       const routePath = route.path;
       const { appHtml, islandToPathMap, propsData } = await render(routePath);
+      await buildIslands(root, islandToPathMap);
       const html = `<!DOCTYPE html>
     <html>
       <head>
@@ -73,7 +128,7 @@ async function renderPage(render, root, clientBundle, routes) {
       </head>
       <body>
         <div id="root">${appHtml}</div>
-        <script type="module" src="/${_optionalChain([clientChunk, 'optionalAccess', _ => _.fileName])}"></script>
+        <script type="module" src="/${_optionalChain([clientChunk, 'optionalAccess', _2 => _2.fileName])}"></script>
       </body>
     </html>`.trim();
       const fileName = routePath.endsWith("/") ? `${routePath}index.html` : `${routePath}.html`;

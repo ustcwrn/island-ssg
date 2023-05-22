@@ -1,8 +1,9 @@
 import {
   CLIENT_ENTRY_PATH,
+  MASK_SPLITTER,
   SERVER_ENTRY_PATH,
   createVitePlugins
-} from "./chunk-O6AKEET3.mjs";
+} from "./chunk-TLNYQFEU.mjs";
 import {
   resolveConfig
 } from "./chunk-I7RX6JT6.mjs";
@@ -55,6 +56,59 @@ async function bundle(root, config) {
     console.log(e);
   }
 }
+async function buildIslands(root, islandPathToMap) {
+  const islandsInjectCode = `
+    ${Object.entries(islandPathToMap).map(
+    ([islandName, islandPath]) => `import { ${islandName} } from '${islandPath}'`
+  ).join("")}
+window.ISLANDS = { ${Object.keys(islandPathToMap).join(", ")} };
+window.ISLAND_PROPS = JSON.parse(
+  document.getElementById('island-props').textContent
+);
+  `;
+  const injectId = "island:inject";
+  return viteBuild({
+    mode: "production",
+    build: {
+      // 输出目录
+      outDir: path.join(root, ".temp"),
+      rollupOptions: {
+        // 让rollup加载虚拟模块
+        input: injectId
+      }
+    },
+    plugins: [
+      // 重点插件，用来加载我们拼接的 Islands 注册模块的代码
+      {
+        name: "island:inject",
+        enforce: "post",
+        resolveId(id) {
+          if (id.includes(MASK_SPLITTER)) {
+            const [originId, importer] = id.split(MASK_SPLITTER);
+            return this.resolve(originId, importer, { skipSelf: true });
+          }
+          if (id === injectId) {
+            return id;
+          }
+        },
+        // 加载resolve(id)后的代码
+        load(id) {
+          if (id === injectId) {
+            return islandsInjectCode;
+          }
+        },
+        // 对于 Islands Bundle，我们只需要 JS 即可，其它资源文件可以删除
+        generateBundle(_, bundle2) {
+          for (const name in bundle2) {
+            if (bundle2[name].type === "asset") {
+              delete bundle2[name];
+            }
+          }
+        }
+      }
+    ]
+  });
+}
 async function renderPage(render, root, clientBundle, routes) {
   const clientChunk = clientBundle.output.find(
     (chunk) => chunk.type === "chunk" && chunk.isEntry
@@ -63,6 +117,7 @@ async function renderPage(render, root, clientBundle, routes) {
     routes.map(async (route) => {
       const routePath = route.path;
       const { appHtml, islandToPathMap, propsData } = await render(routePath);
+      await buildIslands(root, islandToPathMap);
       const html = `<!DOCTYPE html>
     <html>
       <head>
