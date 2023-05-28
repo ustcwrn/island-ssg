@@ -16,9 +16,9 @@ export function pluginIndexHtml(): Plugin {
 
       return () => {
         server.middlewares.use(async (req, res, next) => {
+          console.log(req.url);
           // 1. 读取template.html的内容
           let html = await readFile(DEFAULT_HTML_PATH, 'utf-8');
-
           // 2.响应html给浏览器
           try {
             // 热更新

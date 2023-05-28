@@ -3,7 +3,7 @@
 
 
 
-var _chunkZ23NZUXPjs = require('./chunk-Z23NZUXP.js');
+var _chunkJQHEUOMJjs = require('./chunk-JQHEUOMJ.js');
 
 
 var _chunk3W46IG2Ajs = require('./chunk-3W46IG2A.js');
@@ -17,6 +17,7 @@ var _path = require('path'); var _path2 = _interopRequireDefault(_path);
 var _vite = require('vite');
 var _fsextra = require('fs-extra'); var _fsextra2 = _interopRequireDefault(_fsextra);
 var _url = require('url');
+var CLIENT_OUTPUT = "build";
 async function bundle(root, config) {
   try {
     const resolveViteConfig = async (isServer) => {
@@ -24,16 +25,16 @@ async function bundle(root, config) {
         mode: "production",
         root,
         // 传入isServer参数
-        plugins: await _chunkZ23NZUXPjs.createVitePlugins.call(void 0, config, void 0, isServer),
+        plugins: await _chunkJQHEUOMJjs.createVitePlugins.call(void 0, config, void 0, isServer),
         ssr: {
           // 注意加上这个配置，防止 cjs 产物中 require ESM 的产物，因为 react-router-dom 的产物为 ESM 格式
           noExternal: ["react-router-dom", "lodash-es"]
         },
         build: {
           ssr: isServer,
-          outDir: isServer ? _path2.default.join(root, ".temp") : _path2.default.join(root, "build"),
+          outDir: isServer ? _path2.default.join(root, ".temp") : _path2.default.join(root, CLIENT_OUTPUT),
           rollupOptions: {
-            input: isServer ? _chunkZ23NZUXPjs.SERVER_ENTRY_PATH : _chunkZ23NZUXPjs.CLIENT_ENTRY_PATH,
+            input: isServer ? _chunkJQHEUOMJjs.SERVER_ENTRY_PATH : _chunkJQHEUOMJjs.CLIENT_ENTRY_PATH,
             output: {
               format: isServer ? "cjs" : "esm"
             }
@@ -51,6 +52,10 @@ async function bundle(root, config) {
       clientBuild(),
       serverBuild()
     ]);
+    const publicDir = _path2.default.join(root, "docs", "public");
+    if (_fsextra2.default.pathExistsSync(publicDir)) {
+      await _fsextra2.default.copy(publicDir, _path2.default.join(root, CLIENT_OUTPUT));
+    }
     return [clientBundle, serverBundle];
   } catch (e) {
     console.log(e);
@@ -83,8 +88,8 @@ window.ISLAND_PROPS = JSON.parse(
         name: "island:inject",
         enforce: "post",
         resolveId(id) {
-          if (id.includes(_chunkZ23NZUXPjs.MASK_SPLITTER)) {
-            const [originId, importer] = id.split(_chunkZ23NZUXPjs.MASK_SPLITTER);
+          if (id.includes(_chunkJQHEUOMJjs.MASK_SPLITTER)) {
+            const [originId, importer] = id.split(_chunkJQHEUOMJjs.MASK_SPLITTER);
             return this.resolve(originId, importer, { skipSelf: true });
           }
           if (id === injectId) {
@@ -116,8 +121,16 @@ async function renderPage(render, root, clientBundle, routes) {
   return Promise.all(
     routes.map(async (route) => {
       const routePath = route.path;
-      const { appHtml, islandToPathMap, propsData } = await render(routePath);
-      await buildIslands(root, islandToPathMap);
+      const {
+        appHtml,
+        islandToPathMap,
+        islandProps: propsData = []
+      } = await render(routePath);
+      const styleAssets = clientBundle.output.filter(
+        (chunk) => chunk.type === "asset" && chunk.fileName.endsWith(".css")
+      );
+      const islandBundle = await buildIslands(root, islandToPathMap);
+      const islandsCode = islandBundle.output[0].code;
       const html = `<!DOCTYPE html>
     <html>
       <head>
@@ -125,9 +138,12 @@ async function renderPage(render, root, clientBundle, routes) {
         <meta name="viewport" content="width=device-width,initial-scale=1">
         <title>title</title>
         <meta name="description" content="xxx">
+           ${styleAssets.map((item) => `<link rel="stylesheet" href="/${item.fileName}">`).join("\n")}
       </head>
       <body>
         <div id="root">${appHtml}</div>
+        <script type="module">${islandsCode}</script>
+        <script id="island-props">${JSON.stringify(propsData)}</script>
         <script type="module" src="/${_optionalChain([clientChunk, 'optionalAccess', _2 => _2.fileName])}"></script>
       </body>
     </html>`.trim();

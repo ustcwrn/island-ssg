@@ -31,6 +31,7 @@ function pluginIndexHtml() {
     configureServer(server) {
       return () => {
         server.middlewares.use(async (req, res, next) => {
+          console.log(req.url);
           let html = await readFile(DEFAULT_HTML_PATH, "utf-8");
           try {
             html = await server.transformIndexHtml(
@@ -745,5 +746,6 @@ export {
   PACKAGE_ROOT,
   CLIENT_ENTRY_PATH,
   SERVER_ENTRY_PATH,
+  MASK_SPLITTER,
   createVitePlugins
 };

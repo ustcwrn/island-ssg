@@ -3,7 +3,7 @@ import {
   MASK_SPLITTER,
   SERVER_ENTRY_PATH,
   createVitePlugins
-} from "./chunk-TLNYQFEU.mjs";
+} from "./chunk-BV2BFDQO.mjs";
 import {
   resolveConfig
 } from "./chunk-I7RX6JT6.mjs";
@@ -17,6 +17,7 @@ import path, { dirname } from "path";
 import { build as viteBuild } from "vite";
 import fs from "fs-extra";
 import { pathToFileURL } from "url";
+var CLIENT_OUTPUT = "build";
 async function bundle(root, config) {
   try {
     const resolveViteConfig = async (isServer) => {
@@ -31,7 +32,7 @@ async function bundle(root, config) {
         },
         build: {
           ssr: isServer,
-          outDir: isServer ? path.join(root, ".temp") : path.join(root, "build"),
+          outDir: isServer ? path.join(root, ".temp") : path.join(root, CLIENT_OUTPUT),
           rollupOptions: {
             input: isServer ? SERVER_ENTRY_PATH : CLIENT_ENTRY_PATH,
             output: {
@@ -51,6 +52,10 @@ async function bundle(root, config) {
       clientBuild(),
       serverBuild()
     ]);
+    const publicDir = path.join(root, "docs", "public");
+    if (fs.pathExistsSync(publicDir)) {
+      await fs.copy(publicDir, path.join(root, CLIENT_OUTPUT));
+    }
     return [clientBundle, serverBundle];
   } catch (e) {
     console.log(e);
@@ -116,8 +121,16 @@ async function renderPage(render, root, clientBundle, routes) {
   return Promise.all(
     routes.map(async (route) => {
       const routePath = route.path;
-      const { appHtml, islandToPathMap, propsData } = await render(routePath);
-      await buildIslands(root, islandToPathMap);
+      const {
+        appHtml,
+        islandToPathMap,
+        islandProps: propsData = []
+      } = await render(routePath);
+      const styleAssets = clientBundle.output.filter(
+        (chunk) => chunk.type === "asset" && chunk.fileName.endsWith(".css")
+      );
+      const islandBundle = await buildIslands(root, islandToPathMap);
+      const islandsCode = islandBundle.output[0].code;
       const html = `<!DOCTYPE html>
     <html>
       <head>
@@ -125,9 +138,12 @@ async function renderPage(render, root, clientBundle, routes) {
         <meta name="viewport" content="width=device-width,initial-scale=1">
         <title>title</title>
         <meta name="description" content="xxx">
+           ${styleAssets.map((item) => `<link rel="stylesheet" href="/${item.fileName}">`).join("\n")}
       </head>
       <body>
         <div id="root">${appHtml}</div>
+        <script type="module">${islandsCode}</script>
+        <script id="island-props">${JSON.stringify(propsData)}</script>
         <script type="module" src="/${clientChunk?.fileName}"></script>
       </body>
     </html>`.trim();

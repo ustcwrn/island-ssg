@@ -9,6 +9,7 @@ import { createVitePlugins } from './vitePlugins';
 import { MASK_SPLITTER } from './constants';
 import { Route } from './plugin-routes';
 
+const CLIENT_OUTPUT = 'build';
 // SSG 的核心逻辑
 export async function bundle(root: string, config: SiteConfig) {
   // const spinner = ora()
@@ -30,7 +31,7 @@ export async function bundle(root: string, config: SiteConfig) {
           ssr: isServer,
           outDir: isServer
             ? path.join(root, '.temp')
-            : path.join(root, 'build'),
+            : path.join(root, CLIENT_OUTPUT),
           rollupOptions: {
             input: isServer ? SERVER_ENTRY_PATH : CLIENT_ENTRY_PATH,
             output: {
@@ -53,6 +54,11 @@ export async function bundle(root: string, config: SiteConfig) {
       clientBuild(),
       serverBuild()
     ]);
+    const publicDir = path.join(root, 'docs', 'public');
+    if (fs.pathExistsSync(publicDir)) {
+      await fs.copy(publicDir, path.join(root, CLIENT_OUTPUT));
+    }
+
     return [clientBundle, serverBundle] as [RollupOutput, RollupOutput];
   } catch (e) {
     console.log(e);
@@ -134,9 +140,17 @@ export async function renderPage(
   return Promise.all(
     routes.map(async (route) => {
       const routePath = route.path;
-      const { appHtml, islandToPathMap, propsData } = await render(routePath);
+      const {
+        appHtml,
+        islandToPathMap,
+        islandProps: propsData = []
+      } = await render(routePath);
       // 打包island组件
-      await buildIslands(root, islandToPathMap);
+      const styleAssets = clientBundle.output.filter(
+        (chunk) => chunk.type === 'asset' && chunk.fileName.endsWith('.css')
+      );
+      const islandBundle = await buildIslands(root, islandToPathMap);
+      const islandsCode = (islandBundle as RollupOutput).output[0].code;
       const html = `<!DOCTYPE html>
     <html>
       <head>
@@ -144,9 +158,14 @@ export async function renderPage(
         <meta name="viewport" content="width=device-width,initial-scale=1">
         <title>title</title>
         <meta name="description" content="xxx">
+           ${styleAssets
+             .map((item) => `<link rel="stylesheet" href="/${item.fileName}">`)
+             .join('\n')}
       </head>
       <body>
         <div id="root">${appHtml}</div>
+        <script type="module">${islandsCode}</script>
+        <script id="island-props">${JSON.stringify(propsData)}</script>
         <script type="module" src="/${clientChunk?.fileName}"></script>
       </body>
     </html>`.trim();
